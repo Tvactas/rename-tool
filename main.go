@@ -13,12 +13,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"errors"
 
 	fs "rename-tool/common/FileStatus"
+	"rename-tool/common/admin"
 	sc "rename-tool/common/scan"
 	"rename-tool/setting/config"
 	gb "rename-tool/setting/global"
@@ -128,6 +128,15 @@ func showMainMenu() {
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(250, 380))
 
+	// 显示权限状态
+	adminStatus := widget.NewLabel("")
+	if admin.IsAdmin() {
+		adminStatus.SetText(tr("running_as_admin"))
+		adminStatus.TextStyle = fyne.TextStyle{Bold: true}
+	} else {
+		adminStatus.SetText(tr("running_as_normal_user"))
+	}
+
 	// 优化按钮创建
 	makeTextBtn := func(text string, onTap func()) fyne.CanvasObject {
 		btn := widget.NewButton(text, onTap)
@@ -175,6 +184,8 @@ func showMainMenu() {
 
 	header := container.NewHBox(
 		langSelector,
+		layout.NewSpacer(),
+		adminStatus,
 		layout.NewSpacer(),
 		widget.NewLabel(tr("title")),
 	)
@@ -1395,8 +1406,8 @@ func showBusyFilesDialog(window fyne.Window, busyFiles []string) {
 // 尝试结束占用文件的进程并重试重命名
 func killProcessesAndRetry(window fyne.Window, files []string) {
 	// 尝试以管理员权限运行
-	if !isAdmin() {
-		runAsAdmin()
+	if !admin.IsAdmin() {
+		admin.RunAsAdmin()
 		return
 	}
 
@@ -1571,26 +1582,6 @@ func retryRename(files []string, window fyne.Window) {
 	}
 
 	dialog.ShowInformation(tr("retry_result"), message.String(), window)
-}
-
-// 检查当前是否以管理员权限运行
-func isAdmin() bool {
-	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-	return err == nil
-}
-
-// 以管理员权限重新运行程序
-func runAsAdmin() {
-	exe, _ := os.Executable()
-	cwd, _ := os.Getwd()
-
-	args := strings.Join(os.Args[1:], " ")
-
-	// 在Windows上请求管理员权限
-	cmd := exec.Command("cmd", "/C", "start", "runas", exe, args)
-	cmd.Dir = cwd
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	_ = cmd.Start() // 忽略错误，用户可能取消UAC提示
 }
 
 func getFiles(dir string, formats []string) ([]string, error) {

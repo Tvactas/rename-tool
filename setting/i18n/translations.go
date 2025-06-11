@@ -83,6 +83,8 @@ var Translations = map[string]map[string]string{
 		"delete_length_placeholder":         "输入要删除的字符数量",
 		"invalid_start_position":            "无效的起始位置",
 		"invalid_delete_length":             "无效的删除长度",
+		"running_as_admin":                  "以管理员权限运行",
+		"running_as_normal_user":            "以普通用户权限运行",
 	},
 	"en": {
 		"title":                             "File Rename Tool",
@@ -165,6 +167,8 @@ var Translations = map[string]map[string]string{
 		"delete_length_placeholder":         "Enter the number of characters to delete",
 		"invalid_start_position":            "Invalid start position",
 		"invalid_delete_length":             "Invalid delete length",
+		"running_as_admin":                  "Running as Administrator",
+		"running_as_normal_user":            "Running as Normal User",
 	},
 	"ja": {
 		"title":                             "ファイル名変更ツール",
@@ -247,5 +251,7 @@ var Translations = map[string]map[string]string{
 		"delete_length_placeholder":         "削除する文字数を入力",
 		"invalid_start_position":            "無効な開始位置",
 		"invalid_delete_length":             "無効な削除文字数",
+		"running_as_admin":                  "管理者権限で実行中",
+		"running_as_normal_user":            "一般ユーザー権限で実行中",
 	},
 }
