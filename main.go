@@ -25,7 +25,8 @@ import (
 	"rename-tool/setting/i18n"
 	"rename-tool/setting/model"
 	"rename-tool/utils"
-	"rename-tool/utils/resource"
+
+	"rename-tool/view"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -37,8 +38,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-//go:embed src/font/JP.TTF src/font/TIMES.TTF src/font/STXINGKA.TTF src/img/cat.png
-var fontFS embed.FS
+//go:embed src/font/* src/img/*
+var resourceFS embed.FS
 
 type mainTheme struct{}
 type otherTheme struct{}
@@ -51,24 +52,7 @@ func (m *mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) c
 }
 
 func (m *mainTheme) Font(style fyne.TextStyle) fyne.Resource {
-	var fontName string
-	switch gb.Lang {
-	case "zh":
-		fontName = "STXINGKA.TTF"
-	case "en":
-		fontName = "TIMES.TTF"
-	case "ja":
-		fontName = "JP.TTF"
-	default:
-		fontName = "TIMES.TTF"
-	}
-
-	if font := resource.LoadFont(fontFS, fontName); font != nil {
-		return font
-	}
-
-	// 如果加载失败，返回默认字体
-	return nil
+	return view.LoadFont(style)
 }
 
 func (m *mainTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
@@ -87,10 +71,7 @@ func (m *otherTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) 
 }
 
 func (m *otherTheme) Font(style fyne.TextStyle) fyne.Resource {
-	if font := resource.LoadFont(fontFS, "TIMES.TTF"); font != nil {
-		return font
-	}
-	return nil
+	return view.LoadDefaultFont()
 }
 
 func (m *otherTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
@@ -136,13 +117,16 @@ func showMainMenu() {
 	gb.MyApp.Settings().SetTheme(&mainTheme{})
 
 	// 使用嵌入的图片资源
-	catImg := canvas.NewImageFromResource(resource.LoadImage(fontFS, "cat.png"))
-	if catImg.Resource == nil {
-		catImg = canvas.NewImageFromFile("")
+	imgResource := view.LoadImage("cat.png")
+	var image *canvas.Image
+	if imgResource == nil {
+		image = canvas.NewImageFromFile("")
 		logError(fmt.Errorf("failed to load cat.png"))
+	} else {
+		image = canvas.NewImageFromResource(imgResource)
 	}
-	catImg.FillMode = canvas.ImageFillContain
-	catImg.SetMinSize(fyne.NewSize(250, 380))
+	image.FillMode = canvas.ImageFillContain
+	image.SetMinSize(fyne.NewSize(250, 380))
 
 	// 优化按钮创建
 	makeTextBtn := func(text string, onTap func()) fyne.CanvasObject {
@@ -179,7 +163,7 @@ func showMainMenu() {
 
 	// 优化布局
 	rightBox := container.NewVBox(buttonGrid)
-	mainContent := container.NewBorder(nil, nil, catImg, rightBox)
+	mainContent := container.NewBorder(nil, nil, image, rightBox)
 	centered := container.NewVBox(
 		layout.NewSpacer(),
 		mainContent,
@@ -1839,7 +1823,8 @@ func (pd *ProgressDialog) IsCancelled() bool {
 
 func init() {
 	// 初始化资源加载器
-	resource.Init(fontFS)
+	view.SetFontFS(resourceFS) // 设置字体文件系统
+	view.Init()                // 初始化资源加载器
 
 	// 设置语言变更回调
 	i18n.GetManager().SetOnLangChange(func() {
@@ -1855,7 +1840,7 @@ func init() {
 	})
 
 	// 列出所有嵌入的文件
-	files, err := fontFS.ReadDir(".")
+	files, err := view.ReadDir(".")
 	if err != nil {
 		logError(fmt.Errorf("failed to read embedded files: %v", err))
 		return
@@ -1893,12 +1878,7 @@ func getLogPath() string {
 
 // 获取错误日志文件路径
 func getErrorLogPath() string {
-	appDir := getAppDataDir()
-	logDir := filepath.Join(appDir, config.LogDir)
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		return filepath.Join(appDir, "error.log")
-	}
-	return filepath.Join(logDir, "error.log")
+	return filepath.Join(getAppDataDir(), "error.log")
 }
 
 // 修改日志记录函数
@@ -1920,51 +1900,6 @@ func logError(err error) {
 		// 记录写入错误，但不返回错误以避免循环
 		fmt.Fprintf(os.Stderr, "Failed to write to error log: %v\n", err)
 	}
-}
-
-// 添加字体缓存
-var fontCache = make(map[string]fyne.Resource)
-
-// 修改字体加载函数
-func loadFont(name string) fyne.Resource {
-	// 检查缓存
-	if font, ok := fontCache[name]; ok {
-		return font
-	}
-
-	// 尝试从嵌入的文件系统加载
-	data, err := fontFS.ReadFile("src/font/" + name)
-	if err != nil {
-		logError(fmt.Errorf("failed to load font %s: %v", name, err))
-		return nil
-	}
-
-	// 创建资源并缓存
-	font := fyne.NewStaticResource(name, data)
-	fontCache[name] = font
-	return font
-}
-
-// 修改图片加载函数，也添加缓存
-var imageCache = make(map[string]fyne.Resource)
-
-func loadImage(name string) fyne.Resource {
-	// 检查缓存
-	if img, ok := imageCache[name]; ok {
-		return img
-	}
-
-	// 尝试从嵌入的文件系统加载
-	data, err := fontFS.ReadFile("src/img/" + name)
-	if err != nil {
-		logError(fmt.Errorf("failed to load image %s: %v", name, err))
-		return nil
-	}
-
-	// 创建资源并缓存
-	img := fyne.NewStaticResource(name, data)
-	imageCache[name] = img
-	return img
 }
 
 // 修改tr函数，使用i18n包的Tr函数
