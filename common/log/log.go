@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"rename-tool/common/filepathTvacats"
+	"rename-tool/common/dirpath"
 	"rename-tool/setting/config"
 	"time"
 )
@@ -15,7 +15,7 @@ func LogError(err error) {
 		return
 	}
 
-	logPath := getErrorLogPath()
+	logPath := GetErrorLogPath()
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return
@@ -31,11 +31,21 @@ func LogError(err error) {
 }
 
 // 获取错误日志文件路径
-func getErrorLogPath() string {
-	appDir := filepathTvacats.GetAppDataDir()
+func GetErrorLogPath() string {
+	appDir := dirpath.GetAppDataDir()
 	logDir := filepath.Join(appDir, config.LogDir)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		return filepath.Join(appDir, "error.log")
 	}
 	return filepath.Join(logDir, "error.log")
+}
+
+// 获取日志文件路径
+func GetLogPath() string {
+	appDir := dirpath.GetAppDataDir()
+	logDir := filepath.Join(appDir, config.LogDir)
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		return filepath.Join(appDir, "rename.log")
+	}
+	return filepath.Join(logDir, "rename.log")
 }

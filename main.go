@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"image/color"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
+
 	"strconv"
 	"strings"
 	"sync"
@@ -19,9 +18,11 @@ import (
 
 	fs "rename-tool/common/FileStatus"
 	"rename-tool/common/admin"
-	sc "rename-tool/common/scan"
+	"rename-tool/common/dirpath"
+	"rename-tool/common/log"
+	"rename-tool/common/scan"
 	"rename-tool/setting/config"
-	gb "rename-tool/setting/global"
+	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 	"rename-tool/setting/model"
 	"rename-tool/utils"
@@ -86,42 +87,42 @@ func main() {
 	// 设置错误处理
 	defer func() {
 		if r := recover(); r != nil {
-			logError(fmt.Errorf("panic: %v", r))
+			log.LogError(fmt.Errorf("panic: %v", r))
 		}
 	}()
 
 	// 初始化应用
-	gb.MyApp = app.NewWithID("com.yourdomain.renametool")
-	gb.MainWindow = gb.MyApp.NewWindow(tr("title"))
-	gb.MainWindow.Resize(fyne.NewSize(600, 400))
-	gb.MainWindow.SetFixedSize(true) // 禁止调整窗口大小
-	gb.MainWindow.SetMaster()        // 设置为主窗口
+	global.MyApp = app.NewWithID("com.yourdomain.renametool")
+	global.MainWindow = global.MyApp.NewWindow(tr("title"))
+	global.MainWindow.Resize(fyne.NewSize(600, 400))
+	global.MainWindow.SetFixedSize(true) // 禁止调整窗口大小
+	global.MainWindow.SetMaster()        // 设置为主窗口
 
 	// 获取当前目录
 	dir, err := os.Getwd()
 	if err == nil {
-		gb.CurrentDir = dir
+		global.CurrentDir = dir
 	} else {
-		gb.CurrentDir = "."
-		logError(fmt.Errorf("failed to get current directory: %v", err))
+		global.CurrentDir = "."
+		log.LogError(fmt.Errorf("failed to get current directory: %v", err))
 	}
-	gb.SelectedDir = gb.CurrentDir
+	global.SelectedDir = global.CurrentDir
 
 	// 设置自定义主题
-	gb.MyApp.Settings().SetTheme(&mainTheme{})
+	global.MyApp.Settings().SetTheme(&mainTheme{})
 	showMainMenu()
-	gb.MainWindow.ShowAndRun()
+	global.MainWindow.ShowAndRun()
 }
 
 func showMainMenu() {
-	gb.MyApp.Settings().SetTheme(&mainTheme{})
+	global.MyApp.Settings().SetTheme(&mainTheme{})
 
 	// 使用嵌入的图片资源
 	imgResource := view.LoadImage("cat.png")
 	var image *canvas.Image
 	if imgResource == nil {
 		image = canvas.NewImageFromFile("")
-		logError(fmt.Errorf("failed to load cat.png"))
+		log.LogError(fmt.Errorf("failed to load cat.png"))
 	} else {
 		image = canvas.NewImageFromResource(imgResource)
 	}
@@ -160,7 +161,7 @@ func showMainMenu() {
 		{tr("regex_replace"), func() { showRegexReplace() }},
 		{tr("undo"), undoRename},
 		{tr("log"), saveLogs},
-		{tr("exit"), func() { gb.MyApp.Quit() }},
+		{tr("exit"), func() { global.MyApp.Quit() }},
 	}
 
 	// 创建按钮网格
@@ -179,7 +180,7 @@ func showMainMenu() {
 		layout.NewSpacer(),
 	)
 
-	bgContent := setBackground(centered)
+	bgContent := view.SetBackground(centered)
 	langSelector := langSelect()
 
 	header := container.NewHBox(
@@ -195,30 +196,8 @@ func showMainMenu() {
 		bgContent,
 	)
 
-	gb.MainWindow.SetContent(content)
-	gb.MainWindow.Show()
-}
-
-// 背景设置函数
-func setBackground(content fyne.CanvasObject) fyne.CanvasObject {
-	// 创建蓝到紫的线性渐变（左上到右下）
-	grad1 := canvas.NewLinearGradient(
-		color.RGBA{R: 0, G: 128, B: 255, A: 255}, // 蓝色
-		color.RGBA{R: 128, G: 0, B: 255, A: 255}, // 紫色
-		45,                                       // 角度，左上到右下
-	)
-	// 叠加紫到绿的半透明渐变
-	grad2 := canvas.NewLinearGradient(
-		color.RGBA{R: 128, G: 0, B: 255, A: 128}, // 半透明紫色
-		color.RGBA{R: 0, G: 255, B: 128, A: 128}, // 半透明绿色
-		45,
-	)
-
-	return container.NewStack(
-		grad1,
-		grad2,
-		container.NewPadded(content),
-	)
+	global.MainWindow.SetContent(content)
+	global.MainWindow.Show()
 }
 
 // 执行重命名操作
@@ -229,7 +208,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	}
 
 	// 获取文件列表
-	files, err := getFiles(config.SelectedDir, config.Formats)
+	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
 		dialog.ShowError(&AppError{
 			Code:    "FILE_LIST_ERROR",
@@ -265,7 +244,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 				container.NewHBox(copyBtn, layout.NewSpacer(), closeBtn),
 				nil,
 				nil,
-				container.NewMax(textArea),
+				container.NewStack(textArea),
 			)
 
 			dialog := dialog.NewCustom(
@@ -516,13 +495,13 @@ func showSuccessMessage(window fyne.Window, renameType model.RenameType, count i
 
 // ================= 批量重命名(普通)界面 =================
 func showBatchRenameNormal() {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr("batch_rename_title"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr("batch_rename_title"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	// 顶部标题
@@ -562,12 +541,12 @@ func showBatchRenameNormal() {
 	formatContainer.Resize(fyne.NewSize(0, config.FormatListHeight))
 
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
-		formats, err := sc.ScanFormats(gb.SelectedDir)
+		formats, err := scan.ScanFormats(global.SelectedDir)
 		if err != nil {
 			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_failed"))
 			return
@@ -638,8 +617,8 @@ func showBatchRenameNormal() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
 		// 获取选中的格式
@@ -671,7 +650,7 @@ func showBatchRenameNormal() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:                    model.RenameTypeBatch,
-			SelectedDir:             gb.SelectedDir,
+			SelectedDir:             global.SelectedDir,
 			Formats:                 selectedFormats,
 			PrefixDigits:            preDig,
 			PrefixText:              prefix,
@@ -717,7 +696,7 @@ func showBatchRenameNormal() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:                    model.RenameTypeBatch,
-			SelectedDir:             gb.SelectedDir,
+			SelectedDir:             global.SelectedDir,
 			Formats:                 selectedFormats,
 			PrefixDigits:            preDig,
 			PrefixText:              prefix,
@@ -729,7 +708,7 @@ func showBatchRenameNormal() {
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, selectedFormats)
+		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
@@ -783,13 +762,13 @@ func showBatchRenameNormal() {
 
 // ================= 扩展名修改界面 =================
 func showChangeExtension() {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr("change_ext_title"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr("change_ext_title"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	title := widget.NewLabelWithStyle(tr("title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -811,12 +790,12 @@ func showChangeExtension() {
 	previewBox := container.NewBorder(previewLabel, nil, nil, nil, previewList)
 
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
-		formats, err := sc.ScanFormats(gb.SelectedDir)
+		formats, err := scan.ScanFormats(global.SelectedDir)
 		if err != nil {
 			formatSelect.Options = []string{tr("scan_failed")}
 			return
@@ -841,8 +820,8 @@ func showChangeExtension() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
 		oldExt := formatSelect.Selected
@@ -865,7 +844,7 @@ func showChangeExtension() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:         model.RenameTypeExtension,
-			SelectedDir:  gb.SelectedDir,
+			SelectedDir:  global.SelectedDir,
 			Formats:      []string{oldExt},
 			NewExtension: newExt,
 		}
@@ -896,13 +875,13 @@ func showChangeExtension() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:         model.RenameTypeExtension,
-			SelectedDir:  gb.SelectedDir,
+			SelectedDir:  global.SelectedDir,
 			Formats:      []string{oldExt},
 			NewExtension: newExt,
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, []string{oldExt})
+		files, err := dirpath.GetFiles(global.SelectedDir, []string{oldExt})
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
@@ -941,13 +920,13 @@ func showChangeExtension() {
 
 // ================= 大小写重命名界面 =================
 func showRenameToCase(caseType string) {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr(caseType + "_case_title"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr(caseType + "_case_title"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	title := widget.NewLabelWithStyle(tr(caseType+"_case_title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -965,12 +944,12 @@ func showRenameToCase(caseType string) {
 
 	// 扫描文件
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
-		files, err := getFiles(gb.SelectedDir, nil)
+		files, err := dirpath.GetFiles(global.SelectedDir, nil)
 		if err != nil {
 			previewList.Length = func() int { return 1 }
 			previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel(tr("scan_failed")) }
@@ -997,14 +976,14 @@ func showRenameToCase(caseType string) {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:        model.RenameTypeCase,
-			SelectedDir: gb.SelectedDir,
+			SelectedDir: global.SelectedDir,
 			CaseType:    caseType,
 		}
 
@@ -1017,12 +996,12 @@ func showRenameToCase(caseType string) {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:        model.RenameTypeCase,
-			SelectedDir: gb.SelectedDir,
+			SelectedDir: global.SelectedDir,
 			CaseType:    caseType,
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, nil)
+		files, err := dirpath.GetFiles(global.SelectedDir, nil)
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
@@ -1052,13 +1031,13 @@ func showRenameToCase(caseType string) {
 
 // ================= 字符插入重命名界面 =================
 func showInsertCharRename() {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr("insert_char_title"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr("insert_char_title"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	title := widget.NewLabelWithStyle(tr("title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -1090,12 +1069,12 @@ func showInsertCharRename() {
 	insertTextEntry.SetPlaceHolder(tr("insert_text_placeholder"))
 
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
-		formats, err := sc.ScanFormats(gb.SelectedDir)
+		formats, err := scan.ScanFormats(global.SelectedDir)
 		if err != nil {
 			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_failed"))
 			return
@@ -1150,8 +1129,8 @@ func showInsertCharRename() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
 		// 获取选中的格式
@@ -1184,7 +1163,7 @@ func showInsertCharRename() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:           model.RenameTypeInsertChar,
-			SelectedDir:    gb.SelectedDir,
+			SelectedDir:    global.SelectedDir,
 			Formats:        selectedFormats,
 			InsertPosition: position,
 			InsertText:     insertText,
@@ -1226,14 +1205,14 @@ func showInsertCharRename() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:           model.RenameTypeInsertChar,
-			SelectedDir:    gb.SelectedDir,
+			SelectedDir:    global.SelectedDir,
 			Formats:        selectedFormats,
 			InsertPosition: position,
 			InsertText:     insertText,
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, selectedFormats)
+		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
@@ -1279,21 +1258,21 @@ func showInsertCharRename() {
 
 // ================= 撤销重命名 =================
 func undoRename() {
-	if len(gb.Logs) == 0 {
-		dialog.ShowInformation(tr("info"), tr("no_undo_operations"), gb.MainWindow)
+	if len(global.Logs) == 0 {
+		dialog.ShowInformation(tr("info"), tr("no_undo_operations"), global.MainWindow)
 		return
 	}
 
 	busyFiles := []string{} // 记录被占用的文件
 	successCount := 0
 
-	for i := len(gb.Logs) - 1; i >= 0; i-- {
-		log := gb.Logs[i]
+	for i := len(global.Logs) - 1; i >= 0; i-- {
+		log := global.Logs[i]
 		if _, err := os.Stat(log.New); err == nil {
 			if err := os.Rename(log.New, log.Original); err == nil {
 				successCount++
 				// 从日志中移除已撤销的记录
-				gb.Logs = append(gb.Logs[:i], gb.Logs[i+1:]...)
+				global.Logs = append(global.Logs[:i], global.Logs[i+1:]...)
 			} else if fs.IsFileBusyError(err) {
 				busyFiles = append(busyFiles, log.New)
 			}
@@ -1301,46 +1280,46 @@ func undoRename() {
 	}
 
 	if len(busyFiles) > 0 {
-		showBusyFilesDialog(gb.MainWindow, busyFiles)
+		showBusyFilesDialog(global.MainWindow, busyFiles)
 	} else {
-		dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("undo_success"), successCount), gb.MainWindow)
+		dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("undo_success"), successCount), global.MainWindow)
 	}
 }
 
 // ================= 保存日志 =================
 func saveLogs() {
-	if len(gb.Logs) == 0 {
-		dialog.ShowInformation(tr("info"), tr("no_operations_to_save"), gb.MainWindow)
+	if len(global.Logs) == 0 {
+		dialog.ShowInformation(tr("info"), tr("no_operations_to_save"), global.MainWindow)
 		return
 	}
 
 	content := ""
-	for _, log := range gb.Logs {
+	for _, log := range global.Logs {
 		content += fmt.Sprintf("%s > %s [%s]\n", log.Original, log.New, log.Time)
 	}
 
 	// 确保目录存在
-	if err := os.MkdirAll(filepath.Dir(getLogPath()), os.ModePerm); err != nil {
-		dialog.ShowError(fmt.Errorf(tr("error_creating_directory")+": %v", err), gb.MainWindow)
+	if err := os.MkdirAll(filepath.Dir(log.GetLogPath()), os.ModePerm); err != nil {
+		dialog.ShowError(fmt.Errorf(tr("error_creating_directory")+": %v", err), global.MainWindow)
 		return
 	}
 
 	// 使用临时文件进行写入
-	tempPath := getLogPath() + ".tmp"
+	tempPath := log.GetLogPath() + ".tmp"
 	if err := os.WriteFile(tempPath, []byte(content), 0644); err != nil {
-		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), gb.MainWindow)
+		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), global.MainWindow)
 		return
 	}
 
 	// 原子性地重命名临时文件
-	if err := os.Rename(tempPath, getLogPath()); err != nil {
+	if err := os.Rename(tempPath, log.GetLogPath()); err != nil {
 		// 清理临时文件
 		os.Remove(tempPath)
-		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), gb.MainWindow)
+		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), global.MainWindow)
 		return
 	}
 
-	dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("success_saved")+" "+tr("logs_count")+" "+tr("files_count_with_path"), len(gb.Logs), getLogPath()), gb.MainWindow)
+	dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("success_saved")+" "+tr("logs_count")+" "+tr("files_count_with_path"), len(global.Logs), log.GetLogPath()), global.MainWindow)
 }
 
 // ============== 文件占用处理函数 ==============
@@ -1360,15 +1339,17 @@ func showBusyFilesDialog(window fyne.Window, busyFiles []string) {
 		dialog.ShowInformation(tr("success"), tr("copy_success"), window)
 	})
 
-	killBtn := widget.NewButton(tr("kill_and_retry"), nil)
-	retryBtn := widget.NewButton(tr("retry_no_kill"), nil)
+	retryBtn := widget.NewButton(tr("retry"), nil)
 	cancelBtn := widget.NewButton(tr("cancel"), nil)
+
+	// 添加重试按钮点击限制
+	var lastRetryTime time.Time
+	var retryMutex sync.Mutex
 
 	// 创建底部按钮容器
 	bottomButtons := container.NewHBox(
 		copyBtn,
 		layout.NewSpacer(),
-		killBtn,
 		retryBtn,
 		cancelBtn,
 	)
@@ -1379,10 +1360,10 @@ func showBusyFilesDialog(window fyne.Window, busyFiles []string) {
 		bottomButtons,
 		nil,
 		nil,
-		container.NewMax(textArea),
+		container.NewStack(textArea),
 	)
 
-	dialog := dialog.NewCustom(
+	busyFilesDialog := dialog.NewCustom(
 		tr("busy_files_title"),
 		"",
 		dialogContent,
@@ -1390,171 +1371,40 @@ func showBusyFilesDialog(window fyne.Window, busyFiles []string) {
 	)
 
 	// 设置按钮动作
-	killBtn.OnTapped = func() {
-		dialog.Hide()
-		killProcessesAndRetry(window, busyFiles)
-	}
 	retryBtn.OnTapped = func() {
-		dialog.Hide()
+		retryMutex.Lock()
+		if time.Since(lastRetryTime) < 2*time.Second {
+			dialog.ShowInformation(tr("warning"), tr("retry_too_fast"), window)
+			retryMutex.Unlock()
+			return
+		}
+		lastRetryTime = time.Now()
+		retryMutex.Unlock()
+
+		busyFilesDialog.Hide()
 		retryRename(busyFiles, window)
 	}
-	cancelBtn.OnTapped = dialog.Hide
+	cancelBtn.OnTapped = busyFilesDialog.Hide
 
-	dialog.Show()
-}
-
-// 尝试结束占用文件的进程并重试重命名
-func killProcessesAndRetry(window fyne.Window, files []string) {
-	// 尝试以管理员权限运行
-	if !admin.IsAdmin() {
-		admin.RunAsAdmin()
-		return
-	}
-
-	// 作为管理员运行，尝试结束进程
-	successCount := 0
-	failedFiles := []string{}
-	processInfo := make(map[string][]string) // 记录每个文件对应的进程信息
-
-	for _, file := range files {
-		processes := getProcessesUsingFile(file)
-		if len(processes) == 0 {
-			// 如果没有找到进程，可能是其他原因导致的占用
-			failedFiles = append(failedFiles, file)
-			continue
-		}
-
-		processInfo[file] = processes
-		allKilled := true
-
-		for _, proc := range processes {
-			if !killProcess(proc) {
-				allKilled = false
-				break
-			}
-		}
-
-		if allKilled {
-			// 等待一小段时间确保进程完全结束
-			time.Sleep(500 * time.Millisecond)
-			// 成功结束进程后尝试重命名
-			if retryRenameForFile(file) {
-				successCount++
-			} else {
-				failedFiles = append(failedFiles, file)
-			}
-		} else {
-			failedFiles = append(failedFiles, file)
-		}
-	}
-
-	// 显示详细结果
-	showKillResult(window, successCount, len(files), failedFiles, processInfo)
-}
-
-// 获取占用文件的进程信息
-func getProcessesUsingFile(filePath string) []string {
-	var processes []string
-
-	// 根据操作系统选择不同的命令
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		// 使用handle.exe来查找使用文件的进程
-		cmd = exec.Command("handle", filePath)
-	} else {
-		// 在Linux/Unix上使用lsof
-		cmd = exec.Command("lsof", filePath)
-	}
-
-	output, err := cmd.Output()
-	if err != nil {
-		logError(&AppError{
-			Code:    "PROCESS_LIST_ERROR",
-			Message: "Failed to get process list",
-			Err:     err,
-		})
-		return processes
-	}
-
-	// 解析输出
-	if runtime.GOOS == "windows" {
-		lines := strings.Split(string(output), "\n")
-		for _, line := range lines {
-			if strings.Contains(line, "pid:") {
-				fields := strings.Fields(line)
-				if len(fields) >= 2 {
-					processes = append(processes, fmt.Sprintf("%s (PID: %s)", fields[0], fields[1]))
-				}
-			}
-		}
-	} else {
-		// Linux/Unix 系统处理
-		lines := strings.Split(string(output), "\n")
-		for _, line := range lines {
-			fields := strings.Fields(line)
-			if len(fields) >= 2 {
-				processes = append(processes, fmt.Sprintf("%s (PID: %s)", fields[0], fields[1]))
-			}
-		}
-	}
-
-	return processes
-}
-
-// 结束指定进程
-func killProcess(processInfo string) bool {
-	// 从进程信息中提取PID
-	pid := ""
-	if strings.Contains(processInfo, "PID:") {
-		pid = strings.TrimSpace(strings.Split(processInfo, "PID:")[1])
-		pid = strings.Trim(pid, ")")
-	}
-
-	if pid == "" {
-		return false
-	}
-
-	cmd := exec.Command("taskkill", "/F", "/PID", pid)
-	return cmd.Run() == nil
-}
-
-// 显示进程结束结果
-func showKillResult(window fyne.Window, successCount, totalCount int, failedFiles []string, processInfo map[string][]string) {
-	var content strings.Builder
-	content.WriteString(fmt.Sprintf(tr("success_killed")+" %d/%d 个文件\n\n", successCount, totalCount))
-
-	if len(failedFiles) > 0 {
-		content.WriteString(tr("some_files_may_still_be_in_use") + ":\n")
-		for _, file := range failedFiles {
-			content.WriteString(fmt.Sprintf("\n%s:\n", file))
-			if processes, ok := processInfo[file]; ok {
-				for _, proc := range processes {
-					content.WriteString(fmt.Sprintf("  - %s\n", proc))
-				}
-			}
-		}
-	}
-
-	dialog.ShowInformation(tr("operation_completed"), content.String(), window)
+	busyFilesDialog.Show()
 }
 
 // 重试重命名单个文件
 func retryRenameForFile(filePath string) bool {
-	// 第一次尝试
-	err := renameFile(filePath, filePath)
-	if err == nil {
-		return true
-	}
-
-	// 如果文件被占用，等待一段时间后重试
-	if fs.IsFileBusyError(err) {
-		time.Sleep(500 * time.Millisecond)
-		err = renameFile(filePath, filePath)
+	// 尝试3次重命名
+	for i := 0; i < 3; i++ {
+		err := renameFile(filePath, filePath)
 		if err == nil {
 			return true
 		}
-	}
 
+		// 如果文件被占用，等待一段时间后重试
+		if fs.IsFileBusyError(err) {
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		break
+	}
 	return false
 }
 
@@ -1579,67 +1429,11 @@ func retryRename(files []string, window fyne.Window) {
 		for _, file := range failedFiles {
 			message.WriteString(fmt.Sprintf("  - %s\n", file))
 		}
+		// 如果还有失败的文件，显示重试对话框
+		showBusyFilesDialog(window, failedFiles)
+	} else {
+		dialog.ShowInformation(tr("retry_result"), message.String(), window)
 	}
-
-	dialog.ShowInformation(tr("retry_result"), message.String(), window)
-}
-
-func getFiles(dir string, formats []string) ([]string, error) {
-	var result []string
-	formatSet := make(map[string]bool)
-	for _, f := range formats {
-		formatSet[f] = true
-	}
-
-	// 使用缓冲通道优化文件遍历
-	fileChan := make(chan string, 100)
-	errorChan := make(chan error, 1)
-
-	go func() {
-		defer close(fileChan)
-		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				// 尝试打开文件以确保可访问
-				file, err := os.Open(path)
-				if err != nil {
-					// 如果文件被占用，记录错误但继续处理其他文件
-					if fs.IsFileBusyError(err) {
-						logError(fmt.Errorf("file busy: %s", path))
-						return nil
-					}
-					return err
-				}
-				file.Close()
-
-				fileChan <- path
-			}
-			return nil
-		})
-		if err != nil {
-			errorChan <- err
-		}
-	}()
-
-	// 处理文件
-	for file := range fileChan {
-		ext := strings.ToLower(filepath.Ext(file))
-		if len(formats) == 0 || formatSet[ext] {
-			result = append(result, file)
-		}
-	}
-
-	// 检查错误
-	select {
-	case err := <-errorChan:
-		return nil, err
-	default:
-	}
-
-	sort.Strings(result)
-	return result, nil
 }
 
 // 添加错误类型定义
@@ -1696,7 +1490,7 @@ func renameFile(oldPath, newPath string) error {
 		// 执行重命名
 		err = os.Rename(oldPath, newPath)
 		if err == nil {
-			gb.Logs = append(gb.Logs, gb.RenameLog{
+			global.Logs = append(global.Logs, global.RenameLog{
 				Original: oldPath,
 				New:      newPath,
 				Time:     time.Now().Format("2006-01-02 15:04:05"),
@@ -1820,76 +1614,24 @@ func init() {
 	// 设置语言变更回调
 	i18n.GetManager().SetOnLangChange(func() {
 		// 刷新主窗口
-		if gb.MainWindow != nil {
+		if global.MainWindow != nil {
 			// 保存当前窗口大小
-			size := gb.MainWindow.Canvas().Size()
+			size := global.MainWindow.Canvas().Size()
 			// 重新创建主菜单
 			showMainMenu()
 			// 恢复窗口大小
-			gb.MainWindow.Resize(size)
+			global.MainWindow.Resize(size)
 		}
 	})
 
 	// 列出所有嵌入的文件
 	files, err := view.ReadDir(".")
 	if err != nil {
-		logError(fmt.Errorf("failed to read embedded files: %v", err))
+		log.LogError(fmt.Errorf("failed to read embedded files: %v", err))
 		return
 	}
 	for _, file := range files {
-		logError(fmt.Errorf("embedded file: %s", file.Name()))
-	}
-}
-
-// 获取应用数据目录
-func getAppDataDir() string {
-	// 获取用户主目录
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "."
-	}
-
-	// 在用户主目录下创建应用目录
-	appDir := filepath.Join(homeDir, "."+config.AppName)
-	if err := os.MkdirAll(appDir, 0755); err != nil {
-		return "."
-	}
-	return appDir
-}
-
-// 获取日志文件路径
-func getLogPath() string {
-	appDir := getAppDataDir()
-	logDir := filepath.Join(appDir, config.LogDir)
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		return filepath.Join(appDir, "rename.log")
-	}
-	return filepath.Join(logDir, "rename.log")
-}
-
-// 获取错误日志文件路径
-func getErrorLogPath() string {
-	return filepath.Join(getAppDataDir(), "error.log")
-}
-
-// 修改日志记录函数
-func logError(err error) {
-	if err == nil {
-		return
-	}
-
-	logPath := getErrorLogPath()
-	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-
-	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	logEntry := fmt.Sprint("[", timestamp, "] ", err, "\n")
-	if _, err := f.WriteString(logEntry); err != nil {
-		// 记录写入错误，但不返回错误以避免循环
-		fmt.Fprintf(os.Stderr, "Failed to write to error log: %v\n", err)
+		log.LogError(fmt.Errorf("embedded file: %s", file.Name()))
 	}
 }
 
@@ -1904,14 +1646,14 @@ func langSelect() fyne.CanvasObject {
 
 // 创建目录选择组件
 func createDirSelector(window fyne.Window) fyne.CanvasObject {
-	dirLabel := widget.NewLabel(tr("dir") + ": " + gb.SelectedDir)
+	dirLabel := widget.NewLabel(tr("dir") + ": " + global.SelectedDir)
 	dirBtn := widget.NewButton(tr("select_dir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if uri != nil {
-				gb.SelectedDir = uri.Path()
+				global.SelectedDir = uri.Path()
 				// 替换"父母"为".."
-				gb.SelectedDir = strings.Replace(gb.SelectedDir, "父母", "..", -1)
-				dirLabel.SetText(tr("dir") + ": " + gb.SelectedDir)
+				global.SelectedDir = strings.Replace(global.SelectedDir, "父母", "..", -1)
+				dirLabel.SetText(tr("dir") + ": " + global.SelectedDir)
 			}
 		}, window).Show()
 	})
@@ -1981,7 +1723,7 @@ func showLengthErrorDialog(window fyne.Window, files []string) {
 		container.NewHBox(copyBtn, layout.NewSpacer(), closeBtn),
 		nil,
 		nil,
-		container.NewMax(textArea),
+		container.NewStack(textArea),
 	)
 
 	dialog := dialog.NewCustom(
@@ -2049,13 +1791,13 @@ func updatePreview(previewList *widget.List, files []string, config model.Rename
 
 // ================= 正则替换界面 =================
 func showRegexReplace() {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr("regex_replace"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr("regex_replace"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	// 标题
@@ -2075,8 +1817,8 @@ func showRegexReplace() {
 				return
 			}
 			if uri != nil {
-				gb.SelectedDir = uri.Path()
-				dirSelector.SetText(gb.SelectedDir)
+				global.SelectedDir = uri.Path()
+				dirSelector.SetText(global.SelectedDir)
 			}
 		}, window)
 	})
@@ -2102,13 +1844,13 @@ func showRegexReplace() {
 
 	// 添加预览按钮
 	previewBtn := widget.NewButton(tr("preview"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, nil)
+		files, err := dirpath.GetFiles(global.SelectedDir, nil)
 		if err != nil {
 			previewList.Length = func() int { return 1 }
 			previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel(tr("scan_failed")) }
@@ -2130,7 +1872,7 @@ func showRegexReplace() {
 
 		config := model.RenameConfig{
 			Type:           model.RenameTypeReplace,
-			SelectedDir:    gb.SelectedDir,
+			SelectedDir:    global.SelectedDir,
 			ReplacePattern: replacePatternEntry.Text,
 			ReplaceText:    replaceTextEntry.Text,
 			UseRegex:       useRegexCheck.Checked,
@@ -2142,7 +1884,7 @@ func showRegexReplace() {
 
 	// 重命名按钮
 	renameBtn := widget.NewButton(tr("rename"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
@@ -2154,7 +1896,7 @@ func showRegexReplace() {
 
 		config := model.RenameConfig{
 			Type:           model.RenameTypeReplace,
-			SelectedDir:    gb.SelectedDir,
+			SelectedDir:    global.SelectedDir,
 			ReplacePattern: replacePatternEntry.Text,
 			ReplaceText:    replaceTextEntry.Text,
 			UseRegex:       useRegexCheck.Checked,
@@ -2166,8 +1908,8 @@ func showRegexReplace() {
 	// 返回按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 
 	// 布局
@@ -2229,13 +1971,13 @@ func checkDuplicateNames(files []string, config model.RenameConfig) ([]string, e
 
 // ================= 删除字符重命名界面 =================
 func showDeleteCharRename() {
-	gb.MyApp.Settings().SetTheme(&otherTheme{})
-	gb.MainWindow.Hide()
-	window := gb.MyApp.NewWindow(tr("delete_char_title"))
+	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MainWindow.Hide()
+	window := global.MyApp.NewWindow(tr("delete_char_title"))
 	window.Resize(fyne.NewSize(600, 500))
 	window.SetFixedSize(true)
 	window.SetCloseIntercept(func() {
-		gb.MyApp.Quit()
+		global.MyApp.Quit()
 	})
 
 	title := widget.NewLabelWithStyle(tr("title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
@@ -2267,12 +2009,12 @@ func showDeleteCharRename() {
 	deleteLengthEntry.SetPlaceHolder(tr("delete_length_placeholder"))
 
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if gb.SelectedDir == "" {
+		if global.SelectedDir == "" {
 			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
 			return
 		}
 
-		formats, err := sc.ScanFormats(gb.SelectedDir)
+		formats, err := scan.ScanFormats(global.SelectedDir)
 		if err != nil {
 			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_failed"))
 			return
@@ -2327,8 +2069,8 @@ func showDeleteCharRename() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		gb.MyApp.Settings().SetTheme(&mainTheme{})
-		gb.MainWindow.Show()
+		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
 		// 获取选中的格式
@@ -2361,7 +2103,7 @@ func showDeleteCharRename() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:                model.RenameTypeDeleteChar,
-			SelectedDir:         gb.SelectedDir,
+			SelectedDir:         global.SelectedDir,
 			Formats:             selectedFormats,
 			DeleteStartPosition: startPos,
 			DeleteLength:        deleteLen,
@@ -2403,14 +2145,14 @@ func showDeleteCharRename() {
 		// 创建重命名配置
 		config := model.RenameConfig{
 			Type:                model.RenameTypeDeleteChar,
-			SelectedDir:         gb.SelectedDir,
+			SelectedDir:         global.SelectedDir,
 			Formats:             selectedFormats,
 			DeleteStartPosition: startPos,
 			DeleteLength:        deleteLen,
 		}
 
 		// 获取文件列表
-		files, err := getFiles(gb.SelectedDir, selectedFormats)
+		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
