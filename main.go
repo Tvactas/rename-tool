@@ -3,31 +3,28 @@ package main
 //power by Tvacats
 import (
 	"embed"
+	"errors"
 	"fmt"
-	"image/color"
 	"os"
 	"path/filepath"
 	"runtime"
-
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"errors"
-
 	fs "rename-tool/common/FileStatus"
 	"rename-tool/common/admin"
 	"rename-tool/common/dirpath"
 	"rename-tool/common/log"
+	"rename-tool/common/pathgen"
 	"rename-tool/common/scan"
+	"rename-tool/common/theme"
+	"rename-tool/common/ui"
 	"rename-tool/setting/config"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 	"rename-tool/setting/model"
-	"rename-tool/utils"
-
-	"rename-tool/view"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -35,53 +32,11 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
 //go:embed src/font/* src/img/*
 var resourceFS embed.FS
-
-type mainTheme struct{}
-type otherTheme struct{}
-
-func (m *mainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameForeground {
-		return color.Black
-	}
-	return theme.DefaultTheme().Color(name, variant)
-}
-
-func (m *mainTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return view.LoadFont(style)
-}
-
-func (m *mainTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
-	return theme.DefaultTheme().Icon(name)
-}
-
-func (m *mainTheme) Size(name fyne.ThemeSizeName) float32 {
-	return theme.DefaultTheme().Size(name)
-}
-
-func (m *otherTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameForeground {
-		return color.Black
-	}
-	return theme.DefaultTheme().Color(name, variant)
-}
-
-func (m *otherTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return view.LoadDefaultFont()
-}
-
-func (m *otherTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
-	return theme.DefaultTheme().Icon(name)
-}
-
-func (m *otherTheme) Size(name fyne.ThemeSizeName) float32 {
-	return theme.DefaultTheme().Size(name)
-}
 
 func main() {
 	// 设置错误处理
@@ -109,16 +64,16 @@ func main() {
 	global.SelectedDir = global.CurrentDir
 
 	// 设置自定义主题
-	global.MyApp.Settings().SetTheme(&mainTheme{})
+	global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 	showMainMenu()
 	global.MainWindow.ShowAndRun()
 }
 
 func showMainMenu() {
-	global.MyApp.Settings().SetTheme(&mainTheme{})
+	global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 
 	// 使用嵌入的图片资源
-	imgResource := view.LoadImage("cat.png")
+	imgResource := theme.LoadImage("cat.png")
 	var image *canvas.Image
 	if imgResource == nil {
 		image = canvas.NewImageFromFile("")
@@ -180,7 +135,7 @@ func showMainMenu() {
 		layout.NewSpacer(),
 	)
 
-	bgContent := view.SetBackground(centered)
+	bgContent := theme.SetBackground(centered)
 	langSelector := langSelect()
 
 	header := container.NewHBox(
@@ -290,13 +245,13 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 					currentCounter := counter
 					counter++
 					counterMutex.Unlock()
-					newPath = generateBatchRenamePath(file, config, currentCounter)
+					newPath = pathgen.GenerateBatchRenamePath(file, config, currentCounter)
 				case model.RenameTypeExtension:
-					newPath = generateExtensionRenamePath(file, config)
+					newPath = pathgen.GenerateExtensionRenamePath(file, config)
 				case model.RenameTypeCase:
-					newPath = generateCaseRenamePath(file, config)
+					newPath = pathgen.GenerateCaseRenamePath(file, config)
 				case model.RenameTypeInsertChar:
-					newPath, err = generateInsertCharRenamePath(file, config)
+					newPath, err = pathgen.GenerateInsertCharRenamePath(file, config)
 					if err != nil {
 						resultChan <- struct {
 							file string
@@ -305,7 +260,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 						continue
 					}
 				case model.RenameTypeReplace:
-					newPath, err = generateReplaceRenamePath(file, config)
+					newPath, err = pathgen.GenerateReplaceRenamePath(file, config)
 					if err != nil {
 						resultChan <- struct {
 							file string
@@ -314,7 +269,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 						continue
 					}
 				case model.RenameTypeDeleteChar:
-					newPath, err = generateDeleteCharRenamePath(file, config)
+					newPath, err = pathgen.GenerateDeleteCharRenamePath(file, config)
 					if err != nil {
 						resultChan <- struct {
 							file string
@@ -379,97 +334,30 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	}
 
-	showSuccessMessage(window, config.Type, len(files))
+	ui.ShowSuccessMessage(window, config.Type, len(files))
 }
 
-// 生成批量重命名的新路径
-func generateBatchRenamePath(file string, config model.RenameConfig, counter int) string {
-	dirPath, oldName := filepath.Split(file)
-	ext := filepath.Ext(oldName)
-	nameWithoutExt := oldName[:len(oldName)-len(ext)]
+// 检查重名文件
+func checkDuplicateNames(files []string, config model.RenameConfig) ([]string, error) {
+	nameMap := make(map[string]string)
+	var duplicates []string
 
-	newName := ""
+	for _, file := range files {
+		newPath, err := pathgen.GenerateReplaceRenamePath(file, config)
+		if err != nil {
+			return nil, err
+		}
+		_, newName := filepath.Split(newPath)
 
-	// 如果从1开始编号，则counter加1
-	if !config.StartFromZero {
-		counter++
+		if oldFile, exists := nameMap[newName]; exists {
+			duplicates = append(duplicates, fmt.Sprintf("%s 和 %s 将重命名为相同的名称: %s",
+				filepath.Base(oldFile), filepath.Base(file), newName))
+		} else {
+			nameMap[newName] = file
+		}
 	}
 
-	// 构建前缀序号
-	if config.PrefixDigits > 0 {
-		newName += fmt.Sprintf("%0*d", config.PrefixDigits, counter)
-	}
-
-	// 添加前缀文本
-	newName += config.PrefixText
-
-	// 保留原文件名
-	if config.KeepOriginal {
-		newName += nameWithoutExt
-	}
-
-	// 添加后缀文本
-	newName += config.SuffixText
-
-	// 构建后缀序号
-	if config.SuffixDigits > 0 {
-		newName += fmt.Sprintf("%0*d", config.SuffixDigits, counter)
-	}
-
-	// 添加扩展名
-	newName += ext
-
-	return filepath.Join(dirPath, newName)
-}
-
-// 生成扩展名修改的新路径
-func generateExtensionRenamePath(file string, config model.RenameConfig) string {
-	dirPath, oldName := filepath.Split(file)
-	ext := filepath.Ext(oldName)
-	nameWithoutExt := oldName[:len(oldName)-len(ext)]
-	return filepath.Join(dirPath, nameWithoutExt+config.NewExtension)
-}
-
-// 生成大小写重命名的新路径
-func generateCaseRenamePath(file string, config model.RenameConfig) string {
-	dirPath, oldName := filepath.Split(file)
-	newName := transformName(oldName, config.CaseType)
-	return filepath.Join(dirPath, newName)
-}
-
-// 生成字符插入重命名的新路径
-func generateInsertCharRenamePath(file string, config model.RenameConfig) (string, error) {
-	dirPath, oldName := filepath.Split(file)
-	ext := filepath.Ext(oldName)
-	nameWithoutExt := oldName[:len(oldName)-len(ext)]
-
-	// 将文件名转换为rune切片以正确处理Unicode字符
-	runes := []rune(nameWithoutExt)
-	if config.InsertPosition > len(runes) {
-		return "", &FilenameLengthError{Files: []string{oldName}}
-	}
-
-	// 在指定位置插入文本
-	newName := string(runes[:config.InsertPosition]) + config.InsertText + string(runes[config.InsertPosition:])
-	return filepath.Join(dirPath, newName+ext), nil
-}
-
-// 生成正则替换重命名的新路径
-func generateReplaceRenamePath(file string, config model.RenameConfig) (string, error) {
-	generator := utils.GetPathGenerator(model.RenameTypeReplace)
-	if generator == nil {
-		return "", fmt.Errorf("unsupported rename type: %v", config.Type)
-	}
-	return generator.GeneratePath(file, config)
-}
-
-// 生成删除字符重命名的新路径
-func generateDeleteCharRenamePath(file string, config model.RenameConfig) (string, error) {
-	generator := utils.GetPathGenerator(model.RenameTypeDeleteChar)
-	if generator == nil {
-		return "", fmt.Errorf("unsupported rename type: %v", config.Type)
-	}
-	return generator.GeneratePath(file, config)
+	return duplicates, nil
 }
 
 // 显示成功消息
@@ -495,7 +383,7 @@ func showSuccessMessage(window fyne.Window, renameType model.RenameType, count i
 
 // ================= 批量重命名(普通)界面 =================
 func showBatchRenameNormal() {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr("batch_rename_title"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -617,7 +505,7 @@ func showBatchRenameNormal() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
@@ -762,7 +650,7 @@ func showBatchRenameNormal() {
 
 // ================= 扩展名修改界面 =================
 func showChangeExtension() {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr("change_ext_title"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -820,7 +708,7 @@ func showChangeExtension() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
@@ -920,7 +808,7 @@ func showChangeExtension() {
 
 // ================= 大小写重命名界面 =================
 func showRenameToCase(caseType string) {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr(caseType + "_case_title"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -976,7 +864,7 @@ func showRenameToCase(caseType string) {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
@@ -1031,7 +919,7 @@ func showRenameToCase(caseType string) {
 
 // ================= 字符插入重命名界面 =================
 func showInsertCharRename() {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr("insert_char_title"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -1129,7 +1017,7 @@ func showInsertCharRename() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
@@ -1608,8 +1496,8 @@ func (pd *ProgressDialog) IsCancelled() bool {
 
 func init() {
 	// 初始化资源加载器
-	view.SetFontFS(resourceFS) // 设置字体文件系统
-	view.Init()                // 初始化资源加载器
+	theme.SetFontFS(resourceFS) // 设置字体文件系统
+	theme.Init()                // 初始化资源加载器
 
 	// 设置语言变更回调
 	i18n.GetManager().SetOnLangChange(func() {
@@ -1625,7 +1513,7 @@ func init() {
 	})
 
 	// 列出所有嵌入的文件
-	files, err := view.ReadDir(".")
+	files, err := theme.ReadDir(".")
 	if err != nil {
 		log.LogError(fmt.Errorf("failed to read embedded files: %v", err))
 		return
@@ -1758,25 +1646,25 @@ func updatePreview(previewList *widget.List, files []string, config model.Rename
 
 		switch config.Type {
 		case model.RenameTypeBatch:
-			newPath = generateBatchRenamePath(oldPath, config, id)
+			newPath = pathgen.GenerateBatchRenamePath(oldPath, config, id)
 		case model.RenameTypeExtension:
-			newPath = generateExtensionRenamePath(oldPath, config)
+			newPath = pathgen.GenerateExtensionRenamePath(oldPath, config)
 		case model.RenameTypeCase:
-			newPath = generateCaseRenamePath(oldPath, config)
+			newPath = pathgen.GenerateCaseRenamePath(oldPath, config)
 		case model.RenameTypeInsertChar:
-			newPath, err = generateInsertCharRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateInsertCharRenamePath(oldPath, config)
 			if err != nil {
 				obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, tr("error")))
 				return
 			}
 		case model.RenameTypeReplace:
-			newPath, err = generateReplaceRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateReplaceRenamePath(oldPath, config)
 			if err != nil {
 				obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, tr("error")))
 				return
 			}
 		case model.RenameTypeDeleteChar:
-			newPath, err = generateDeleteCharRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateDeleteCharRenamePath(oldPath, config)
 			if err != nil {
 				obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, tr("error")))
 				return
@@ -1791,7 +1679,7 @@ func updatePreview(previewList *widget.List, files []string, config model.Rename
 
 // ================= 正则替换界面 =================
 func showRegexReplace() {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr("regex_replace"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -1908,7 +1796,7 @@ func showRegexReplace() {
 	// 返回按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 
@@ -1946,32 +1834,9 @@ func showRegexReplace() {
 	window.Show()
 }
 
-// 检查重名文件
-func checkDuplicateNames(files []string, config model.RenameConfig) ([]string, error) {
-	nameMap := make(map[string]string)
-	var duplicates []string
-
-	for _, file := range files {
-		newPath, err := generateReplaceRenamePath(file, config)
-		if err != nil {
-			return nil, err
-		}
-		_, newName := filepath.Split(newPath)
-
-		if oldFile, exists := nameMap[newName]; exists {
-			duplicates = append(duplicates, fmt.Sprintf("%s 和 %s 将重命名为相同的名称: %s",
-				filepath.Base(oldFile), filepath.Base(file), newName))
-		} else {
-			nameMap[newName] = file
-		}
-	}
-
-	return duplicates, nil
-}
-
 // ================= 删除字符重命名界面 =================
 func showDeleteCharRename() {
-	global.MyApp.Settings().SetTheme(&otherTheme{})
+	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(tr("delete_char_title"))
 	window.Resize(fyne.NewSize(600, 500))
@@ -2069,7 +1934,7 @@ func showDeleteCharRename() {
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
-		global.MyApp.Settings().SetTheme(&mainTheme{})
+		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
 	})
 	renameBtn := widget.NewButton(tr("rename"), func() {
