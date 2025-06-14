@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"rename-tool/common/FileStatus"
+	"rename-tool/common/fs"
 	"rename-tool/common/log"
 	"sort"
 	"strings"
@@ -14,6 +14,9 @@ func ScanFormats(dir string) ([]string, error) {
 	formatMap := make(map[string]struct{})
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			if fs.IsFileBusyError(err) {
+				return nil
+			}
 			return err
 		}
 		if !info.IsDir() {
@@ -21,7 +24,7 @@ func ScanFormats(dir string) ([]string, error) {
 			file, err := os.Open(path)
 			if err != nil {
 				// 如果文件被占用，记录错误但继续处理其他文件
-				if FileStatus.IsFileBusyError(err) {
+				if fs.IsFileBusyError(err) {
 					log.LogError(fmt.Errorf("file busy: %s", path))
 					return nil
 				}

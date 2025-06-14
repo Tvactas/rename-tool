@@ -85,6 +85,10 @@ var Translations = map[string]map[string]string{
 		"invalid_delete_length":             "无效的删除长度",
 		"running_as_admin":                  "以管理员权限运行",
 		"running_as_normal_user":            "以普通用户权限运行",
+		"rename_success":                    "重命名成功",
+		"rename_success_count":              "成功重命名 %d 个文件",
+		"undo_success":                      "成功撤销 %d 个文件",
+		"no_undo_operations":                "没有可撤销的操作",
 	},
 	"en": {
 		"title":                             "File Rename Tool",
@@ -169,6 +173,10 @@ var Translations = map[string]map[string]string{
 		"invalid_delete_length":             "Invalid delete length",
 		"running_as_admin":                  "Running as Administrator",
 		"running_as_normal_user":            "Running as Normal User",
+		"rename_success":                    "Rename Successful",
+		"rename_success_count":              "Successfully renamed %d files",
+		"undo_success":                      "Successfully undone %d files",
+		"no_undo_operations":                "No operations to undo",
 	},
 	"ja": {
 		"title":                             "ファイル名変更ツール",
@@ -253,5 +261,9 @@ var Translations = map[string]map[string]string{
 		"invalid_delete_length":             "無効な削除文字数",
 		"running_as_admin":                  "管理者権限で実行中",
 		"running_as_normal_user":            "一般ユーザー権限で実行中",
+		"rename_success":                    "リネーム成功",
+		"rename_success_count":              "%d ファイルのリネームに成功しました",
+		"undo_success":                      "%d ファイルの元に戻しました",
+		"no_undo_operations":                "元に戻す操作がありません",
 	},
 }

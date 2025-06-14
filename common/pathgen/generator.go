@@ -6,135 +6,157 @@ import (
 	"strings"
 
 	"rename-tool/setting/model"
-	"rename-tool/utils"
 )
 
-// 生成批量重命名的新路径
-func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int) string {
+// PathGenerator 定义路径生成器接口
+type PathGenerator interface {
+	GeneratePath(file string, config model.RenameConfig) (string, error)
+}
+
+// BasePathGenerator 提供基础路径处理功能
+type BasePathGenerator struct{}
+
+// splitPath 将文件路径分割为目录路径、文件名（不含扩展名）和扩展名
+func (g *BasePathGenerator) splitPath(file string) (dirPath, nameWithoutExt, ext string) {
+	dirPath, oldName := filepath.Split(file)
+	ext = filepath.Ext(oldName)
+	nameWithoutExt = oldName[:len(oldName)-len(ext)]
+	return dirPath, nameWithoutExt, ext
+}
+
+// joinPath 将目录路径、文件名和扩展名组合成完整路径
+func (g *BasePathGenerator) joinPath(dirPath, nameWithoutExt, ext string) string {
+	return filepath.Join(dirPath, nameWithoutExt+ext)
+}
+
+// GetPathGenerator 工厂函数，根据重命名类型返回对应的生成器
+func GetPathGenerator(renameType model.RenameType) (PathGenerator, error) {
+	switch renameType {
+	case model.RenameTypeExtension:
+		return &ExtensionPathGenerator{}, nil
+	case model.RenameTypeCase:
+		return &CasePathGenerator{}, nil
+	case model.RenameTypeInsertChar:
+		return &InsertCharPathGenerator{}, nil
+	case model.RenameTypeReplace:
+		return &ReplacePathGenerator{}, nil
+	case model.RenameTypeDeleteChar:
+		return &DeleteCharPathGenerator{}, nil
+	default:
+		return nil, fmt.Errorf("unsupported rename type: %v", renameType)
+	}
+}
+
+// GenerateBatchRenamePath 生成批量重命名的新路径
+func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int) (string, error) {
 	dirPath, oldName := filepath.Split(file)
 	ext := filepath.Ext(oldName)
 	nameWithoutExt := oldName[:len(oldName)-len(ext)]
 
-	newName := ""
-
-	// 如果从1开始编号，则counter加1
-	if !config.StartFromZero {
-		counter++
-	}
+	var parts []string
 
 	// 构建前缀序号
 	if config.PrefixDigits > 0 {
-		newName += fmt.Sprintf("%0*d", config.PrefixDigits, counter)
+		number := counter
+		if !config.StartFromZero {
+			number++
+		}
+		parts = append(parts, fmt.Sprintf("%0*d", config.PrefixDigits, number))
 	}
 
 	// 添加前缀文本
-	newName += config.PrefixText
+	if config.PrefixText != "" {
+		parts = append(parts, config.PrefixText)
+	}
 
 	// 保留原文件名
 	if config.KeepOriginal {
-		newName += nameWithoutExt
+		parts = append(parts, nameWithoutExt)
 	}
 
 	// 添加后缀文本
-	newName += config.SuffixText
+	if config.SuffixText != "" {
+		parts = append(parts, config.SuffixText)
+	}
 
 	// 构建后缀序号
 	if config.SuffixDigits > 0 {
-		newName += fmt.Sprintf("%0*d", config.SuffixDigits, counter)
+		number := counter
+		if !config.StartFromZero {
+			number++
+		}
+		parts = append(parts, fmt.Sprintf("%0*d", config.SuffixDigits, number))
 	}
 
-	// 添加扩展名
-	newName += ext
-
-	return filepath.Join(dirPath, newName)
+	// 组合新文件名
+	newName := strings.Join(parts, "") + ext
+	return filepath.Join(dirPath, newName), nil
 }
 
-// 生成扩展名修改的新路径
-func GenerateExtensionRenamePath(file string, config model.RenameConfig) string {
-	dirPath, oldName := filepath.Split(file)
-	ext := filepath.Ext(oldName)
-	nameWithoutExt := oldName[:len(oldName)-len(ext)]
-	return filepath.Join(dirPath, nameWithoutExt+config.NewExtension)
+// GenerateExtensionRenamePath 生成扩展名修改的新路径
+func GenerateExtensionRenamePath(file string, config model.RenameConfig) (string, error) {
+	generator, err := GetPathGenerator(model.RenameTypeExtension)
+	if err != nil {
+		return file, err
+	}
+	return generator.GeneratePath(file, config)
 }
 
-// 生成大小写重命名的新路径
-func GenerateCaseRenamePath(file string, config model.RenameConfig) string {
-	dirPath, oldName := filepath.Split(file)
-	newName := TransformName(oldName, config.CaseType)
-	return filepath.Join(dirPath, newName)
+// GenerateCaseRenamePath 生成大小写重命名的新路径
+func GenerateCaseRenamePath(file string, config model.RenameConfig) (string, error) {
+	generator, err := GetPathGenerator(model.RenameTypeCase)
+	if err != nil {
+		return file, err
+	}
+	return generator.GeneratePath(file, config)
 }
 
-// 生成字符插入重命名的新路径
+// GenerateInsertCharRenamePath 生成字符插入重命名的新路径
 func GenerateInsertCharRenamePath(file string, config model.RenameConfig) (string, error) {
-	dirPath, oldName := filepath.Split(file)
-	ext := filepath.Ext(oldName)
-	nameWithoutExt := oldName[:len(oldName)-len(ext)]
-
-	// 将文件名转换为rune切片以正确处理Unicode字符
-	runes := []rune(nameWithoutExt)
-	if config.InsertPosition > len(runes) {
-		return "", &FilenameLengthError{Files: []string{oldName}}
+	generator, err := GetPathGenerator(model.RenameTypeInsertChar)
+	if err != nil {
+		return "", err
 	}
-
-	// 在指定位置插入文本
-	newName := string(runes[:config.InsertPosition]) + config.InsertText + string(runes[config.InsertPosition:])
-	return filepath.Join(dirPath, newName+ext), nil
+	return generator.GeneratePath(file, config)
 }
 
-// 生成正则替换重命名的新路径
+// GenerateReplaceRenamePath 生成正则替换重命名的新路径
 func GenerateReplaceRenamePath(file string, config model.RenameConfig) (string, error) {
-	generator := utils.GetPathGenerator(model.RenameTypeReplace)
-	if generator == nil {
-		return "", fmt.Errorf("unsupported rename type: %v", config.Type)
+	generator, err := GetPathGenerator(model.RenameTypeReplace)
+	if err != nil {
+		return "", err
 	}
 	return generator.GeneratePath(file, config)
 }
 
-// 生成删除字符重命名的新路径
+// GenerateDeleteCharRenamePath 生成删除字符重命名的新路径
 func GenerateDeleteCharRenamePath(file string, config model.RenameConfig) (string, error) {
-	generator := utils.GetPathGenerator(model.RenameTypeDeleteChar)
-	if generator == nil {
-		return "", fmt.Errorf("unsupported rename type: %v", config.Type)
+	generator, err := GetPathGenerator(model.RenameTypeDeleteChar)
+	if err != nil {
+		return "", err
 	}
 	return generator.GeneratePath(file, config)
 }
 
-// 文件名转换函数
-func TransformName(name, caseType string) string {
-	ext := filepath.Ext(name)
-	nameWithoutExt := name[:len(name)-len(ext)]
+// CheckDuplicateNames 检查重名文件
+func CheckDuplicateNames(files []string, config model.RenameConfig) ([]string, error) {
+	nameMap := make(map[string]string)
+	var duplicates []string
 
-	switch caseType {
-	case "upper":
-		return strings.ToUpper(nameWithoutExt) + ext
-	case "lower":
-		return strings.ToLower(nameWithoutExt) + ext
-	case "title":
-		words := strings.Fields(nameWithoutExt)
-		for i, word := range words {
-			if len(word) > 0 {
-				words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
-			}
+	for _, file := range files {
+		newPath, err := GenerateReplaceRenamePath(file, config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate path for %s: %w", file, err)
 		}
-		return strings.Join(words, " ") + ext
-	case "camel":
-		words := strings.Fields(nameWithoutExt)
-		for i, word := range words {
-			if len(word) > 0 {
-				words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
-			}
+		_, newName := filepath.Split(newPath)
+
+		if oldFile, exists := nameMap[newName]; exists {
+			duplicates = append(duplicates, fmt.Sprintf("%s 和 %s 将重命名为相同的名称: %s",
+				filepath.Base(oldFile), filepath.Base(file), newName))
+		} else {
+			nameMap[newName] = file
 		}
-		return strings.Join(words, "") + ext
-	default:
-		return name
 	}
-}
 
-// 添加新的错误类型
-type FilenameLengthError struct {
-	Files []string
-}
-
-func (e *FilenameLengthError) Error() string {
-	return fmt.Sprintf("以下文件名的长度小于指定的插入位置：\n%s", strings.Join(e.Files, "\n"))
+	return duplicates, nil
 }
