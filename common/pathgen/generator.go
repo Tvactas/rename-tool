@@ -47,8 +47,23 @@ func GetPathGenerator(renameType model.RenameType) (PathGenerator, error) {
 	}
 }
 
+// getFormatCounter 获取并更新指定格式的计数器
+func getFormatCounter(ext string, counters map[string]int) int {
+	// 如果是第一次遇到这个扩展名，重置计数器
+	if _, exists := counters[ext]; !exists {
+		counters[ext] = 0
+	}
+	// 返回当前计数，不递增
+	return counters[ext]
+}
+
+// incrementFormatCounter 递增指定格式的计数器
+func incrementFormatCounter(ext string, counters map[string]int) {
+	counters[ext]++
+}
+
 // GenerateBatchRenamePath 生成批量重命名的新路径
-func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int) (string, error) {
+func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int, counters map[string]int) (string, error) {
 	dirPath, oldName := filepath.Split(file)
 	ext := filepath.Ext(oldName)
 	nameWithoutExt := oldName[:len(oldName)-len(ext)]
@@ -57,9 +72,17 @@ func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int
 
 	// 构建前缀序号
 	if config.PrefixDigits > 0 {
-		number := counter
-		if !config.StartFromZero {
-			number++
+		var number int
+		if config.FormatSpecificNumbering {
+			number = getFormatCounter(ext, counters)
+			if !config.StartFromZero {
+				number++
+			}
+		} else {
+			number = counter
+			if !config.StartFromZero {
+				number++
+			}
 		}
 		parts = append(parts, fmt.Sprintf("%0*d", config.PrefixDigits, number))
 	}
@@ -81,16 +104,38 @@ func GenerateBatchRenamePath(file string, config model.RenameConfig, counter int
 
 	// 构建后缀序号
 	if config.SuffixDigits > 0 {
-		number := counter
-		if !config.StartFromZero {
-			number++
+		var number int
+		if config.FormatSpecificNumbering {
+			// 使用不同的计数器键来避免与前缀序号冲突
+			suffixKey := ext + "_suffix"
+			number = getFormatCounter(suffixKey, counters)
+			if !config.StartFromZero {
+				number++
+			}
+		} else {
+			number = counter
+			if !config.StartFromZero {
+				number++
+			}
 		}
 		parts = append(parts, fmt.Sprintf("%0*d", config.SuffixDigits, number))
 	}
 
 	// 组合新文件名
-	newName := strings.Join(parts, "") + ext
-	return filepath.Join(dirPath, newName), nil
+	newName := strings.Join(parts, "")
+	if newName == "" {
+		newName = nameWithoutExt
+	}
+
+	// 如果是格式特定编号，递增计数器
+	if config.FormatSpecificNumbering {
+		incrementFormatCounter(ext, counters)
+		if config.SuffixDigits > 0 {
+			incrementFormatCounter(ext+"_suffix", counters)
+		}
+	}
+
+	return filepath.Join(dirPath, newName+ext), nil
 }
 
 // GenerateExtensionRenamePath 生成扩展名修改的新路径

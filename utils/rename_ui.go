@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"rename-tool/common/dirpath"
-	"rename-tool/common/fs"
 	filestatus "rename-tool/common/fs"
 	"rename-tool/common/pathgen"
 	"rename-tool/common/progress"
@@ -135,7 +134,8 @@ func ShowRenameUI(config RenameUIConfig) {
 		global.MainWindow.Show()
 	})
 
-	renameBtn := widget.NewButton(tr("rename"), func() {
+	var renameBtn *widget.Button
+	renameBtn = widget.NewButton(tr("rename"), func() {
 		// 获取选中的格式
 		var selectedFormats []string
 		for format, check := range formatChecks {
@@ -161,8 +161,19 @@ func ShowRenameUI(config RenameUIConfig) {
 			return
 		}
 
+		// 禁用重命名按钮
+		renameBtn.Disable()
+
 		// 执行重命名
 		performRename(window, renameConfig)
+
+		// 0.5秒后重新启用重命名按钮
+		go func() {
+			time.Sleep(500 * time.Millisecond)
+			fyne.Do(func() {
+				renameBtn.Enable()
+			})
+		}()
 	})
 
 	// 预览按钮
@@ -201,6 +212,9 @@ func ShowRenameUI(config RenameUIConfig) {
 
 		// 更新预览
 		updatePreview(previewList, files, renameConfig)
+
+		// 强制刷新UI
+		previewList.Refresh()
 	})
 
 	// 布局
@@ -251,7 +265,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
-		dialog.ShowError(&fs.AppError{
+		dialog.ShowError(&filestatus.AppError{
 			Code:    "FILE_LIST_ERROR",
 			Message: tr("error_getting_files"),
 			Err:     err,
@@ -313,6 +327,10 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		err  error
 	}, len(files))
 
+	// 创建本地计数器map和互斥锁
+	counters := make(map[string]int)
+	var countersMutex sync.Mutex
+
 	// 启动工作协程
 	var wg sync.WaitGroup
 	counter := 0
@@ -331,7 +349,16 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 					currentCounter := counter
 					counter++
 					counterMutex.Unlock()
-					newPath, err = pathgen.GenerateBatchRenamePath(file, config, currentCounter)
+
+					// 使用互斥锁保护counters map的访问
+					countersMutex.Lock()
+					// 如果是第一次遇到这个扩展名，重置计数器
+					ext := filepath.Ext(file)
+					if _, exists := counters[ext]; !exists {
+						counters[ext] = 0
+					}
+					newPath, err = pathgen.GenerateBatchRenamePath(file, config, currentCounter, counters)
+					countersMutex.Unlock()
 				case model.RenameTypeExtension:
 					newPath, err = pathgen.GenerateExtensionRenamePath(file, config)
 				case model.RenameTypeCase:
@@ -355,7 +382,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 					continue
 				}
 
-				err = fs.RenameFile(file, newPath)
+				err = filestatus.RenameFile(file, newPath)
 				if err == nil {
 					global.Logs = append(global.Logs, global.RenameLog{
 						Original: file,
@@ -389,7 +416,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	lengthErrorFiles := []string{}
 	for result := range resultChan {
 		if result.err != nil {
-			if fs.IsFileBusyError(result.err) {
+			if filestatus.IsFileBusyError(result.err) {
 				busyFiles = append(busyFiles, result.file)
 			} else if _, ok := result.err.(*ui.FilenameLengthError); ok {
 				lengthErrorFiles = append(lengthErrorFiles, result.file)
@@ -416,9 +443,9 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 
 	// 显示文件占用错误
 	if len(busyFiles) > 0 {
-		filestatus.ShowBusyFilesDialog(global.MainWindow, busyFiles)
+		filestatus.ShowBusyFilesDialog(window, busyFiles)
 	} else {
-		dialog.ShowInformation(i18n.Tr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), global.MainWindow)
+		dialog.ShowInformation(i18n.Tr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
 	}
 }
 
@@ -431,31 +458,64 @@ func updatePreview(previewList *widget.List, files []string, config model.Rename
 		return
 	}
 
-	previewList.Length = func() int { return len(files) }
-	previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel("") }
-	previewList.UpdateItem = func(id widget.ListItemID, obj fyne.CanvasObject) {
-		oldPath := files[id]
-		_, oldName := filepath.Split(oldPath)
+	// 创建预览数据，保持原始顺序
+	previewData := make([]string, len(files))
+	copy(previewData, files)
+
+	// 创建本地计数器map，并按照文件扩展名分组初始化
+	counters := make(map[string]int)
+	for _, file := range files {
+		ext := filepath.Ext(file)
+		if _, exists := counters[ext]; !exists {
+			counters[ext] = 0
+		}
+		if config.FormatSpecificNumbering {
+			// 为后缀序号创建独立的计数器
+			suffixKey := ext + "_suffix"
+			if _, exists := counters[suffixKey]; !exists {
+				counters[suffixKey] = 0
+			}
+		}
+	}
+
+	// 预先计算所有新路径
+	newPaths := make([]string, len(files))
+	for i, file := range files {
 		var newPath string
 		var err error
 
 		switch config.Type {
 		case model.RenameTypeBatch:
-			newPath, err = pathgen.GenerateBatchRenamePath(oldPath, config, id)
+			// 在预览时使用相同的计数器逻辑
+			newPath, err = pathgen.GenerateBatchRenamePath(file, config, i, counters)
 		case model.RenameTypeExtension:
-			newPath, err = pathgen.GenerateExtensionRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateExtensionRenamePath(file, config)
 		case model.RenameTypeCase:
-			newPath, err = pathgen.GenerateCaseRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateCaseRenamePath(file, config)
 		case model.RenameTypeInsertChar:
-			newPath, err = pathgen.GenerateInsertCharRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateInsertCharRenamePath(file, config)
 		case model.RenameTypeReplace:
-			newPath, err = pathgen.GenerateReplaceRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateReplaceRenamePath(file, config)
 		case model.RenameTypeDeleteChar:
-			newPath, err = pathgen.GenerateDeleteCharRenamePath(oldPath, config)
+			newPath, err = pathgen.GenerateDeleteCharRenamePath(file, config)
 		}
 
 		if err != nil {
-			obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, err.Error()))
+			newPaths[i] = err.Error()
+		} else {
+			newPaths[i] = newPath
+		}
+	}
+
+	previewList.Length = func() int { return len(previewData) }
+	previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel("") }
+	previewList.UpdateItem = func(id widget.ListItemID, obj fyne.CanvasObject) {
+		oldPath := previewData[id]
+		_, oldName := filepath.Split(oldPath)
+		newPath := newPaths[id]
+
+		if strings.HasPrefix(newPath, "error:") {
+			obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, newPath))
 			return
 		}
 
