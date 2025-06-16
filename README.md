@@ -93,5 +93,4 @@ MIT License
 
 **Tvacats**
 GitHub: [@Tvactas](https://github.com/Tvactas)
-Gmail: [@Tvactas](tvacats@gmail.com)
-
+Gmail: tvacats@gmail.com
