@@ -35,12 +35,7 @@ func ShowMainMenu() {
 
 	// Show permission status
 	adminStatus := widget.NewLabel("")
-	if admin.IsAdmin() {
-		adminStatus.SetText(tr("running_as_admin"))
-		adminStatus.TextStyle = fyne.TextStyle{Bold: true}
-	} else {
-		adminStatus.SetText(tr("running_as_normal_user"))
-	}
+	UpdateAdminStatusLabel(adminStatus)
 
 	// Optimize button creation
 	makeTextBtn := func(text string, onTap func()) fyne.CanvasObject {
@@ -107,4 +102,12 @@ func ShowMainMenu() {
 // Helper function for translation
 func tr(key string) string {
 	return i18n.Tr(key)
+}
+
+func UpdateAdminStatusLabel(label *widget.Label) {
+	if admin.IsAdmin() {
+		label.SetText("Running as administrator")
+	} else {
+		label.SetText("Running as normal user")
+	}
 }

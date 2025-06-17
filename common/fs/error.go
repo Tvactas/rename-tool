@@ -6,7 +6,9 @@ import (
 	"syscall"
 )
 
-// AppError represents an application error
+const errorSharingViolation syscall.Errno = 32 // Windows ERROR_SHARING_VIOLATION
+
+// AppError represents an application-level error with code and message.
 type AppError struct {
 	Code    string
 	Message string
@@ -20,21 +22,31 @@ func (e *AppError) Error() string {
 	return e.Message
 }
 
-// IsFileBusyError checks if the error is a file busy error
+// Unwrap allows AppError to participate in error chains.
+func (e *AppError) Unwrap() error {
+	return e.Err
+}
+
+// IsFileBusyError checks whether the error indicates a "file is in use" condition.
 func IsFileBusyError(err error) bool {
 	if err == nil {
 		return false
 	}
 
-	// Check Windows system error
-	if errors.Is(err, syscall.Errno(32)) { // ERROR_SHARING_VIOLATION = 32
+	// Check known Windows error code
+	if errors.Is(err, errorSharingViolation) {
 		return true
 	}
 
-	// Check error message for keywords
-	errMsg := strings.ToLower(err.Error())
-	return strings.Contains(errMsg, "process cannot access the file") ||
-		strings.Contains(errMsg, "file is being used by another process") ||
-		strings.Contains(errMsg, "sharing violation") ||
-		strings.Contains(errMsg, "file is locked")
+	// Fallback: fuzzy matching of common error message substrings
+	return isKnownFileBusyMessage(err.Error())
+}
+
+// isKnownFileBusyMessage checks if the message contains known "file busy" patterns.
+func isKnownFileBusyMessage(msg string) bool {
+	msg = strings.ToLower(msg)
+	return strings.Contains(msg, "process cannot access the file") ||
+		strings.Contains(msg, "file is being used by another process") ||
+		strings.Contains(msg, "sharing violation") ||
+		strings.Contains(msg, "file is locked")
 }

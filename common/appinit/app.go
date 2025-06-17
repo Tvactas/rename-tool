@@ -1,6 +1,7 @@
 package appinit
 
 import (
+	"errors"
 	"fmt"
 	"rename-tool/common/dirpath"
 	"rename-tool/common/recovery"
@@ -36,13 +37,15 @@ func InitializeApp(config AppConfig) error {
 	// 初始化应用
 	global.MyApp = app.NewWithID(config.AppID)
 	if global.MyApp == nil {
-		return fmt.Errorf("failed to initialize application")
+		return errors.New(i18n.Tr("init_app_failed"))
+
 	}
 
 	// 创建主窗口
 	global.MainWindow = global.MyApp.NewWindow(i18n.Tr("title"))
+
 	if global.MainWindow == nil {
-		return fmt.Errorf("failed to create main window")
+		return errors.New(i18n.Tr("create_main_window_failed"))
 	}
 
 	// 配置窗口
@@ -54,9 +57,8 @@ func InitializeApp(config AppConfig) error {
 
 	// 初始化目录
 	if err := initializeDirectories(); err != nil {
-		return fmt.Errorf("failed to initialize directories: %v", err)
+		return fmt.Errorf("%s: %v", i18n.Tr("init_dir_failed"), err)
 	}
-
 	// 设置主题
 	global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 
@@ -68,7 +70,7 @@ func initializeDirectories() error {
 	// 获取当前目录
 	global.CurrentDir = dirpath.GetCurrentDir()
 	if global.CurrentDir == "" {
-		return fmt.Errorf("failed to get current directory")
+		return fmt.Errorf("%s", i18n.Tr("failed_to_get_current_directory"))
 	}
 	global.SelectedDir = global.CurrentDir
 	return nil
