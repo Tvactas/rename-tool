@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"rename-tool/common/dirpath"
 	"rename-tool/setting/global"
 	"rename-tool/setting/model"
 
@@ -36,8 +37,19 @@ func ShowInsertCharRename() {
 
 	// Create validation function
 	validateConfig := func(config model.RenameConfig) error {
-		if config.InsertPosition < 0 {
-			return errors.New(tr("position_negative"))
+		// 1. 检查输入是否为数字（在configBuilder中已转换，但这里做二次校验）
+		positionStr := positionEntry.Text
+		if _, err := strconv.Atoi(positionStr); err != nil {
+			return errors.New(tr("position_must_be_number"))
+		}
+
+		// 获取最短文件名长度
+		minLen, err := dirpath.GetShortestFilenameLength(global.SelectedDir)
+		if err != nil {
+			return err
+		}
+		if config.InsertPosition > minLen {
+			return errors.New(tr("position_exceeds_length"))
 		}
 		if config.InsertText == "" {
 			return errors.New(tr("insert_text_empty"))

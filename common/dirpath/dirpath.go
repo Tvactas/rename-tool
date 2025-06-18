@@ -105,3 +105,25 @@ func toExtMap(formats []string) map[string]bool {
 	}
 	return m
 }
+
+// GetShortestFilenameLength returns the length of the shortest filename in the given directory (ignores subdirectories)
+func GetShortestFilenameLength(dir string) (int, error) {
+	minLength := -1
+	dirEntries, err := os.ReadDir(dir)
+	if err != nil {
+		return 0, err
+	}
+	for _, entry := range dirEntries {
+		if entry.IsDir() {
+			continue
+		}
+		nameLen := len(entry.Name())
+		if minLength == -1 || nameLen < minLength {
+			minLength = nameLen
+		}
+	}
+	if minLength == -1 {
+		return 0, errors.New("no files in directory")
+	}
+	return minLength, nil
+}

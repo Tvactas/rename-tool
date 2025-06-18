@@ -33,4 +33,5 @@ type RenameConfig struct {
 	StartFromZero           bool       `json:"start_from_zero"`
 	DeleteStartPosition     int        `json:"delete_start_position"`
 	DeleteLength            int        `json:"delete_length"`
+	Filename                string     `json:"filename"`
 }

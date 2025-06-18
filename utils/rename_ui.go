@@ -445,7 +445,9 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	if len(busyFiles) > 0 {
 		filestatus.ShowBusyFilesDialog(window, busyFiles)
 	} else {
-		dialog.ShowInformation(i18n.Tr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
+		if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 {
+			dialog.ShowInformation(i18n.Tr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
+		}
 	}
 }
 
