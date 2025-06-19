@@ -51,9 +51,7 @@ func ShowRenameUI(config RenameUIConfig) {
 	title := widget.NewLabelWithStyle(config.Title, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	// 目录选择
-	dirSelector := dirpath.CreateDirSelector(window)
-
-	// 文件格式扫描
+	var onDirChanged func()
 	formatLabel := widget.NewLabel(tr("scan_format") + ": " + tr("scan_not_started"))
 	formatListContainer := container.NewGridWithColumns(4)
 	selectAllBtn := widget.NewButton(tr("select_all"), nil)
@@ -61,6 +59,16 @@ func ShowRenameUI(config RenameUIConfig) {
 
 	// 存储格式复选框的映射
 	formatChecks := make(map[string]*widget.Check)
+
+	onDirChanged = func() {
+		// 路径变更时清空格式相关内容
+		formatListContainer.Objects = nil
+		formatChecks = make(map[string]*widget.Check)
+		formatLabel.SetText(tr("scan_format") + ": " + tr("scan_not_started"))
+		selectAllBtn.Hide()
+		formatListContainer.Refresh()
+	}
+	dirSelector := dirpath.CreateDirSelector(window, onDirChanged)
 
 	// 创建格式列表的滚动容器
 	formatScroll := container.NewScroll(formatListContainer)

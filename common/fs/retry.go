@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-
 	"time"
 
 	"rename-tool/setting/config"
@@ -28,32 +27,19 @@ func RenameFile(oldPath, newPath string) error {
 
 	baseNewPath := newPath
 	counter := 1
+	ext := filepath.Ext(baseNewPath)
+	name := baseNewPath[:len(baseNewPath)-len(ext)]
 	for {
 		if _, err := os.Stat(newPath); os.IsNotExist(err) {
 			break
 		}
-		ext := filepath.Ext(baseNewPath)
-		name := baseNewPath[:len(baseNewPath)-len(ext)]
 		newPath = fmt.Sprintf("%s_%d%s", name, counter, ext)
 		counter++
 	}
 
 	var err error
+	delay := config.RetryDelay
 	for i := 0; i < config.MaxRetryAttempts; i++ {
-		srcFile, err := os.Open(oldPath)
-		if err != nil {
-			if IsFileBusyError(err) {
-				time.Sleep(config.RetryDelay)
-				continue
-			}
-			return &AppError{
-				Code:    "RENAME_OPEN_ERROR",
-				Message: i18n.Tr("rename_open_failed") + ": " + oldPath,
-				Err:     err,
-			}
-		}
-		srcFile.Close()
-
 		err = os.Rename(oldPath, newPath)
 		if err == nil {
 			return nil
@@ -61,7 +47,8 @@ func RenameFile(oldPath, newPath string) error {
 		if !IsFileBusyError(err) {
 			break
 		}
-		time.Sleep(config.RetryDelay)
+		time.Sleep(delay)
+		delay *= 2
 	}
 
 	return &AppError{
@@ -71,46 +58,54 @@ func RenameFile(oldPath, newPath string) error {
 	}
 }
 
-// RetryRenameForFile tries to rename a file in-place up to 3 times.
+// RetryRenameForFile attempts to rename the file to a temp path and revert to check file busy.
 func RetryRenameForFile(filePath string) bool {
-	for i := 0; i < 3; i++ {
-		err := RenameFile(filePath, filePath)
-		if err == nil {
-			return true
-		}
-		if IsFileBusyError(err) {
-			time.Sleep(500 * time.Millisecond)
-			continue
-		}
-		break
+	tempPath := filePath + ".tmp_retry"
+	err := RenameFile(filePath, tempPath)
+	if err != nil {
+		return false
 	}
-	return false
+	// Try revert back
+	err = RenameFile(tempPath, filePath)
+	return err == nil
 }
 
-// RetryRename attempts to retry renaming all given files.
+// RetryRename attempts to retry renaming all given files concurrently.
 func RetryRename(files []string, window fyne.Window) {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	successCount := 0
 	var failedFiles []string
+	sem := make(chan struct{}, 5) // max concurrency = 5
 
 	for _, file := range files {
-		if RetryRenameForFile(file) {
-			successCount++
-		} else {
-			failedFiles = append(failedFiles, file)
-		}
+		wg.Add(1)
+		go func(f string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			if RetryRenameForFile(f) {
+				mu.Lock()
+				successCount++
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				failedFiles = append(failedFiles, f)
+				mu.Unlock()
+			}
+		}(file)
 	}
 
-	var message strings.Builder
-	message.WriteString(fmt.Sprintf(i18n.Tr("success_retried")+" %d/%d", successCount, len(files)))
+	wg.Wait()
 
+	message := fmt.Sprintf(i18n.Tr("success_retried")+" %d/%d", successCount, len(files))
 	if len(failedFiles) > 0 {
-		message.WriteString("\n\n" + i18n.Tr("some_files_may_still_be_in_use") + ":\n")
-		for _, file := range failedFiles {
-			message.WriteString("  - " + file + "\n")
-		}
+		message += "\n\n" + i18n.Tr("some_files_may_still_be_in_use") + ":\n  - " + strings.Join(failedFiles, "\n  - ")
+		fyne.CurrentApp().SendNotification(&fyne.Notification{Title: i18n.Tr("retry_result"), Content: message})
 		ShowBusyFilesDialog(window, failedFiles)
 	} else {
-		dialog.ShowInformation(i18n.Tr("retry_result"), message.String(), window)
+		dialog.ShowInformation(i18n.Tr("retry_result"), message, window)
 	}
 }
 
@@ -139,7 +134,6 @@ func ShowBusyFilesDialog(window fyne.Window, busyFiles []string) {
 		retryBtn,
 		cancelBtn,
 	)
-
 	dialogContent := container.NewBorder(
 		widget.NewLabel(i18n.Tr("busy_files_message")+":"),
 		bottomButtons,
@@ -166,7 +160,7 @@ func ShowBusyFilesDialog(window fyne.Window, busyFiles []string) {
 		retryMutex.Unlock()
 
 		busyFilesDialog.Hide()
-		RetryRename(busyFiles, window)
+		go RetryRename(busyFiles, window)
 	}
 
 	cancelBtn.OnTapped = busyFilesDialog.Hide

@@ -70,7 +70,7 @@ func GetCurrentDir() string {
 }
 
 // 创建目录选择器组件
-func CreateDirSelector(win fyne.Window) fyne.CanvasObject {
+func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	label := widget.NewLabel(i18n.Tr("dir") + ": " + global.SelectedDir)
 	button := widget.NewButton(i18n.Tr("select_dir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
@@ -81,6 +81,9 @@ func CreateDirSelector(win fyne.Window) fyne.CanvasObject {
 			if uri != nil {
 				global.SelectedDir = uri.Path()
 				label.SetText(i18n.Tr("dir") + ": " + global.SelectedDir)
+				if onDirChanged != nil {
+					onDirChanged()
+				}
 			}
 		}, win).Show()
 	})
