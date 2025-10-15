@@ -1,13 +1,32 @@
 package admin
 
 import (
+	"sync"
+
 	"golang.org/x/sys/windows"
 )
 
-// IsAdmin checks if the current process is running as administrator.
+var (
+	isAdmin  bool
+	initOnce sync.Once
+)
+
 func IsAdmin() bool {
-	sid, _ := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
-	token := windows.Token(0)
-	isMember, _ := token.IsMember(sid)
-	return isMember
+	initOnce.Do(func() {
+		sid, err := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
+		if err != nil {
+			return
+		}
+
+		token := windows.GetCurrentProcessToken()
+		defer token.Close()
+
+		isMember, err := token.IsMember(sid)
+		if err != nil {
+			return
+		}
+
+		isAdmin = isMember
+	})
+	return isAdmin
 }
