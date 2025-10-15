@@ -53,7 +53,18 @@
 go version
 ```
 
-### 2. 获取项目依赖
+### 2. 安装 GCC
+
+请前往 [GCC 官网](https://jmeubank.github.io/tdm-gcc/articles/2021-05/10.3.0-release/) 下载并安装 GCC对应系统版本。（需要勾选 ‘add to path'）
+
+
+
+### 3. 获取项目依赖
+如果在国内可能会出现超时现象,所以需要执行,将下载库源头改为阿里库
+
+```
+go env -w GOPROXY=https://goproxy.cn,direct
+```
 
 在项目根目录执行：
 
@@ -61,7 +72,7 @@ go version
 go mod tidy
 ```
 
-### 3. 构建 EXE
+### 4. 构建 EXE
 
 使用以下命令生成无控制台窗口的 Windows 可执行文件（如需固定图标请加入 `.syso` 文件）：
 
@@ -69,7 +80,7 @@ go mod tidy
 go build -ldflags="-H windowsgui -s -w" -o renamer.exe
 ```
 
-### 4. 使用 UPX 压缩（可选）
+### 5. 使用 UPX 压缩（可选）
 
 前往 [UPX Releases](https://github.com/upx/upx/releases/tag/v5.0.1) 下载适用于系统的压缩包，如：
 
