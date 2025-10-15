@@ -5,12 +5,12 @@ import (
 	"embed"
 	"fmt"
 
-	"rename-tool/common/appinit"
-	"rename-tool/common/log"
-	"rename-tool/common/menu"
-	"rename-tool/common/theme"
-	"rename-tool/setting/global"
-	"rename-tool/setting/i18n"
+	"rename-tool/backend/common/appinit"
+	"rename-tool/backend/common/log"
+	"rename-tool/backend/common/menu"
+	"rename-tool/backend/common/theme"
+	"rename-tool/backend/setting/global"
+	"rename-tool/backend/setting/i18n"
 )
 
 //go:embed src/font/* src/img/*
