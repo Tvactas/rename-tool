@@ -57,6 +57,14 @@ func Tr(key string) string {
 	return Translations[manager.currentLang][key]
 }
 
+func LogTr(key string) string {
+	return log_translations[manager.currentLang][key]
+}
+
+func ButtonTr(key string) string {
+	return button_translations[manager.currentLang][key]
+}
+
 // LangSelect 创建语言选择器组件
 func LangSelect() fyne.CanvasObject {
 	// 创建显示名称列表

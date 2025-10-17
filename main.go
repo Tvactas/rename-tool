@@ -4,7 +4,6 @@ package main
 import (
 	"embed"
 	"fmt"
-
 	"rename-tool/common/appinit"
 	"rename-tool/common/log"
 	"rename-tool/common/menu"

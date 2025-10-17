@@ -106,8 +106,8 @@ func tr(key string) string {
 
 func UpdateAdminStatusLabel(label *widget.Label) {
 	if admin.IsAdmin() {
-		label.SetText("Running as administrator")
+		label.SetText(i18n.ButtonTr("UserPermissionsAD"))
 	} else {
-		label.SetText("Running as normal user")
+		label.SetText(i18n.ButtonTr("UserPermissionsUser"))
 	}
 }

@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"rename-tool/common/dirpath"
@@ -48,4 +49,26 @@ func GetLogPath() string {
 		return filepath.Join(appDir, "rename.log")
 	}
 	return filepath.Join(logDir, "rename.log")
+}
+
+// getLogWriter returns a writer to a log file only (no console)
+func GetLogWriter() io.Writer {
+	var logFile string
+
+	// Write user directories first
+	if home, err := os.UserHomeDir(); err == nil {
+		logFile = filepath.Join(home, "tvacats_rename.log")
+	} else {
+
+		// If the user directory cannot be obtained, write to the D drive
+		logFile = "D:\\tvacats_rename.log"
+	}
+
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	if err != nil {
+		// If the file cannot be written, you can choose to panic
+		panic("无法写入日志文件: " + err.Error())
+	}
+
+	return file
 }

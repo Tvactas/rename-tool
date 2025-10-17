@@ -1,5 +1,38 @@
 package i18n
 
+var log_translations = map[string]map[string]string{
+	"zh": {
+		"CreateWellKnownSidFail": "创建管理员组 SID 失败",
+		"CheckIsMember":          "无法检查当前用户是否在管理员组中",
+		"LoginIdentity":          "管理员检查结果:",
+	},
+	"en": {
+		"CreateWellKnownSidFail": "Failed to create Administrators group SID",
+		"CheckIsMember":          "Unable to check if current user is in administrators group",
+		"LoginIdentity":          "Administrator check result:",
+	},
+	"ja": {
+		"CreateWellKnownSidFail": "管理者グループのSIDを作成できませんでした",
+		"CheckIsMember":          "現在のユーザーが管理者グループに属しているかどうかを確認できません",
+		"LoginIdentity":          "管理者のチェック結果:",
+	},
+}
+
+var button_translations = map[string]map[string]string{
+	"zh": {
+		"UserPermissionsAD":   "管理员身份运行中",
+		"UserPermissionsUser": "普通用户身份运行中",
+	},
+	"en": {
+		"UserPermissionsAD":   "Running as administrator",
+		"UserPermissionsUser": "Running as normal user",
+	},
+	"ja": {
+		"UserPermissionsAD":   "管理者として実行する",
+		"UserPermissionsUser": "通常ユーザーとして実行",
+	},
+}
+
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
