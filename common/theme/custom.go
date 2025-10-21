@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"io/fs"
+	"sync"
 
 	"rename-tool/common/log"
 	"rename-tool/setting/global"
@@ -15,20 +16,27 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
+// 路径常量
+const (
+	fontPath  = "src/font/"
+	imagePath = "src/img/"
+)
+
+// 字体名称常量
+const (
+	FontJP      = "JP.TTF"
+	FontTimes   = "TIMES.TTF"
+	FontXingKai = "STXINGKA.TTF"
+)
+
 // Resource file system
 var fontFS embed.FS
 
-// Resource cache
+// Resource cache with mutex protection
 var (
-	imageCache = make(map[string]fyne.Resource) // Image resource cache
-	fontCache  = make(map[string]fyne.Resource) // Font resource cache
-)
-
-// Font name constants
-const (
-	FontJP      = "JP.TTF"       // Japanese font
-	FontTimes   = "TIMES.TTF"    // Times New Roman font
-	FontXingKai = "STXINGKA.TTF" // Xing Kai font
+	imageCache = make(map[string]fyne.Resource)
+	fontCache  = make(map[string]fyne.Resource)
+	cacheMu    sync.RWMutex
 )
 
 // SetFontFS sets the embedded file system
@@ -38,21 +46,25 @@ func SetFontFS(fs embed.FS) {
 
 // Init initializes the resource loader and preloads fonts and images
 func Init() {
-	// Preload fonts
+	// 预加载字体
 	fonts := []string{FontTimes, FontXingKai, FontJP}
 	for _, font := range fonts {
-		if data, err := fontFS.ReadFile("src/font/" + font); err == nil {
+		if data, err := fontFS.ReadFile(fontPath + font); err == nil {
+			cacheMu.Lock()
 			fontCache[font] = fyne.NewStaticResource(font, data)
+			cacheMu.Unlock()
 		} else {
 			log.LogError(fmt.Errorf("failed to preload font %s: %v", font, err))
 		}
 	}
 
-	// Preload images
+	// 预加载图片
 	images := []string{"cat.png"}
 	for _, img := range images {
-		if data, err := fontFS.ReadFile("src/img/" + img); err == nil {
+		if data, err := fontFS.ReadFile(imagePath + img); err == nil {
+			cacheMu.Lock()
 			imageCache[img] = fyne.NewStaticResource(img, data)
+			cacheMu.Unlock()
 		} else {
 			log.LogError(fmt.Errorf("failed to preload image %s: %v", img, err))
 		}
@@ -66,72 +78,79 @@ func GetFontNameByLang() string {
 		return FontXingKai
 	case "ja":
 		return FontJP
-	case "en":
-		fallthrough
 	default:
 		return FontTimes
 	}
 }
 
-// LoadFont loads the appropriate font based on the current language
-func LoadFont(style fyne.TextStyle) fyne.Resource {
-	fontName := GetFontNameByLang()
-
-	// Check cache
+// loadFontByName 统一的字体加载函数，失败时返回系统默认字体
+func loadFontByName(fontName string) fyne.Resource {
+	// 检查缓存
+	cacheMu.RLock()
 	if font, ok := fontCache[fontName]; ok {
+		cacheMu.RUnlock()
 		return font
 	}
+	cacheMu.RUnlock()
 
-	// Load from file system
-	data, err := fontFS.ReadFile("src/font/" + fontName)
+	// 从文件系统加载
+	data, err := fontFS.ReadFile(fontPath + fontName)
 	if err != nil {
 		log.LogError(fmt.Errorf("failed to load font %s: %v", fontName, err))
-		return nil
+		// 返回 Fyne 默认字体，而不是 nil
+		return theme.DefaultTheme().Font(fyne.TextStyle{})
 	}
 
-	// Create resource and cache it
+	// 创建资源并缓存
 	font := fyne.NewStaticResource(fontName, data)
+	cacheMu.Lock()
 	fontCache[fontName] = font
+	cacheMu.Unlock()
+
+	return font
+}
+
+// LoadFont loads the appropriate font based on the current language
+func LoadFont(style fyne.TextStyle) fyne.Resource {
+	font := loadFontByName(GetFontNameByLang())
+	if font == nil {
+		return theme.DefaultTheme().Font(style)
+	}
 	return font
 }
 
 // LoadDefaultFont loads the default Times New Roman font
 func LoadDefaultFont() fyne.Resource {
-	// Check cache
-	if font, ok := fontCache[FontTimes]; ok {
-		return font
+	font := loadFontByName(FontTimes)
+	if font == nil {
+		return theme.DefaultTheme().Font(fyne.TextStyle{})
 	}
-
-	// Load from file system
-	data, err := fontFS.ReadFile("src/font/" + FontTimes)
-	if err != nil {
-		log.LogError(fmt.Errorf("failed to load font %s: %v", FontTimes, err))
-		return nil
-	}
-
-	// Create resource and cache it
-	font := fyne.NewStaticResource(FontTimes, data)
-	fontCache[FontTimes] = font
 	return font
 }
 
 // LoadImage loads an image resource by name
 func LoadImage(name string) fyne.Resource {
-	// Check cache
+	// 检查缓存
+	cacheMu.RLock()
 	if img, ok := imageCache[name]; ok {
+		cacheMu.RUnlock()
 		return img
 	}
+	cacheMu.RUnlock()
 
-	// Load from file system
-	data, err := fontFS.ReadFile("src/img/" + name)
+	// 从文件系统加载
+	data, err := fontFS.ReadFile(imagePath + name)
 	if err != nil {
 		log.LogError(fmt.Errorf("failed to load image %s: %v", name, err))
 		return nil
 	}
 
-	// Create resource and cache it
+	// 创建资源并缓存
 	img := fyne.NewStaticResource(name, data)
+	cacheMu.Lock()
 	imageCache[name] = img
+	cacheMu.Unlock()
+
 	return img
 }
 
@@ -142,16 +161,14 @@ func ReadDir(dirname string) ([]fs.DirEntry, error) {
 
 // SetBackground sets the background with gradient colors
 func SetBackground(content fyne.CanvasObject) fyne.CanvasObject {
-	// Create blue to purple linear gradient (top-left to bottom-right)
 	grad1 := canvas.NewLinearGradient(
-		color.RGBA{R: 0, G: 128, B: 255, A: 255}, // Blue
-		color.RGBA{R: 128, G: 0, B: 255, A: 255}, // Purple
-		45,                                       // Angle, top-left to bottom-right
+		color.RGBA{R: 0, G: 128, B: 255, A: 255},
+		color.RGBA{R: 128, G: 0, B: 255, A: 255},
+		45,
 	)
-	// Overlay purple to green semi-transparent gradient
 	grad2 := canvas.NewLinearGradient(
-		color.RGBA{R: 128, G: 0, B: 255, A: 128}, // Semi-transparent purple
-		color.RGBA{R: 0, G: 255, B: 128, A: 128}, // Semi-transparent green
+		color.RGBA{R: 128, G: 0, B: 255, A: 128},
+		color.RGBA{R: 0, G: 255, B: 128, A: 128},
 		45,
 	)
 
