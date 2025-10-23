@@ -60,3 +60,22 @@ func ShowLengthErrorDialog(window fyne.Window, files []string) {
 
 	dialog.Show()
 }
+
+func ShowWidePlainMessage(win fyne.Window, title, message string) {
+	label := widget.NewLabel(message)
+	label.Wrapping = fyne.TextWrapWord // 自动换行
+
+	// 给内容加一个最小宽度容器，让对话框宽一些
+	content := container.NewVBox(
+		label,
+	)
+	scroll := container.NewScroll(content)    // 可滚动，防止内容过多
+	scroll.SetMinSize(fyne.NewSize(200, 100)) // 设置对话框最小尺寸
+
+	dialog.ShowCustom(
+		title,
+		"OK",
+		scroll,
+		win,
+	)
+}

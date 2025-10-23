@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"rename-tool/common/dirpath"
 	"rename-tool/common/recovery"
+
 	"rename-tool/common/theme"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"

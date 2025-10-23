@@ -7,28 +7,29 @@ import (
 	"path/filepath"
 	"strings"
 
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/widget"
-
+	"rename-tool/common/applog"
 	"rename-tool/common/fs"
 	"rename-tool/setting/config"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/widget"
 )
 
 // 获取应用数据目录 ~/.AppName/
 func GetAppDataDir() string {
 	appData := os.Getenv("APPDATA")
 	if appData == "" {
-		printError(i18n.Tr("get_home_dir_failed"), nil)
+		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("get_home_dir_failed"), nil)
 		return "."
 	}
 
 	appDir := filepath.Join(appData, config.AppName)
 	if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
-		printError(i18n.Tr("create_app_dir_failed"), err)
+		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("create_app_dir_failed"), err)
 		return "."
 	}
 
@@ -64,7 +65,8 @@ func GetFiles(root string, formats []string) ([]string, error) {
 func GetCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		printError(i18n.Tr("get_current_dir_failed"), err)
+		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("get_current_dir_failed"), err)
+
 		return "" // 明确表明失败
 	}
 	return dir
@@ -76,7 +78,8 @@ func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	button := widget.NewButton(i18n.Tr("select_dir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err != nil {
-				printError(i18n.Tr("folder_open_error"), err)
+				applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("folder_open_error"), err)
+
 				return
 			}
 			if uri != nil {
@@ -90,11 +93,6 @@ func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	})
 
 	return container.NewHBox(label, button)
-}
-
-// 打印错误信息（用于调试日志）
-func printError(msg string, err error) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
 }
 
 // 将扩展名列表转换为map便于快速匹配

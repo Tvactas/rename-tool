@@ -38,6 +38,20 @@ var log_translations = map[string]map[string]string{
 		"FileStatus":             "ファイルは使用中です",
 	},
 }
+var dialog_translations = map[string]map[string]string{
+	"zh": {
+		"SuccessSaved":          "成功保存",
+		"files_count_with_path": "个文件到",
+	},
+	"en": {
+		"SuccessSaved":          "Successfully saved ",
+		"files_count_with_path": "files to",
+	},
+	"ja": {
+		"SuccessSaved":          "正常に保存されました",
+		"files_count_with_path": "ファイルをに",
+	},
+}
 
 var button_translations = map[string]map[string]string{
 	"zh": {
@@ -144,7 +158,6 @@ var Translations = map[string]map[string]string{
 		"create_app_dir_failed":             "创建应用目录失败",
 		"delete_start_position":             "删除起始位置",
 		"filename_length_error":             "以下文件名长度小于指定的插入位置",
-		"files_count_with_path":             "%d 个文件到 %s",
 		"invalid_delete_length":             "❌ 无效的删除长度",
 		"delete_length_negative":            "删除长度不能为负数",
 		"error_no_prefix_suffix":            "❌ 未选原文件且未设序号，可能重名覆盖",
@@ -256,7 +269,6 @@ var Translations = map[string]map[string]string{
 		"create_app_dir_failed":             "Failed to create application directory",
 		"delete_start_position":             "Delete Start Position",
 		"filename_length_error":             "The following filenames are shorter than the specified insert position",
-		"files_count_with_path":             "%d files to %s",
 		"invalid_delete_length":             "❌ Invalid delete length",
 		"delete_length_negative":            "Delete length cannot be negative",
 		"error_no_prefix_suffix":            "❌ Missing name/numbering — files may be overwritten",
@@ -368,7 +380,6 @@ var Translations = map[string]map[string]string{
 		"create_app_dir_failed":             "アプリケーションディレクトリの作成に失敗しました",
 		"delete_start_position":             "削除開始位置",
 		"filename_length_error":             "以下のファイル名は指定された挿入位置より短いです",
-		"files_count_with_path":             "%d ファイルを %s に",
 		"invalid_delete_length":             "❌ 無効な削除文字数",
 		"delete_length_negative":            "削除する長さは負の数にできません",
 		"error_no_prefix_suffix":            "❌名前・連番未設定で、上書きの可能性あり",

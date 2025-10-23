@@ -64,6 +64,9 @@ func LogTr(key string) string {
 func ButtonTr(key string) string {
 	return button_translations[manager.currentLang][key]
 }
+func DialogTr(key string) string {
+	return dialog_translations[manager.currentLang][key]
+}
 
 // LangSelect 创建语言选择器组件
 func LangSelect() fyne.CanvasObject {

@@ -8,7 +8,9 @@ import (
 
 	"rename-tool/common/applog"
 	"rename-tool/common/log"
+	"rename-tool/common/ui"
 	"rename-tool/setting/global"
+	"rename-tool/setting/i18n"
 
 	"fyne.io/fyne/v2/dialog"
 )
@@ -49,6 +51,6 @@ func SaveLogs() {
 		return
 	}
 
-	message := fmt.Sprintf("%s %d %s %s", tr("success_saved"), len(global.Logs), tr("files_count_with_path"), log.GetLogPath())
-	dialog.ShowInformation(tr("success"), message, global.MainWindow)
+	message := fmt.Sprintf("%s %d %s %s", i18n.DialogTr("SuccessSaved"), len(global.Logs), i18n.DialogTr("files_count_with_path"), log.GetLogPath())
+	ui.ShowWidePlainMessage(global.MainWindow, tr("success"), message)
 }
