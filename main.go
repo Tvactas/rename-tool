@@ -49,13 +49,4 @@ func init() {
 		}
 	})
 
-	// List all embedded files
-	files, err := theme.ReadDir(".")
-	if err != nil {
-		applog.Logger.Printf("[INIT ERROR]  %s %v", i18n.LogTr("LoadThemeError"), err)
-		return
-	}
-	for _, file := range files {
-		applog.Logger.Printf("[LIST]   %s: %v", i18n.LogTr("FileList"), file.Name())
-	}
 }

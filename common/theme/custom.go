@@ -24,7 +24,7 @@ const (
 
 // 字体名称常量
 const (
-	FontJP      = "JP.TTF"
+	FontJP      = "NOTOSANSJP.TTF"
 	FontTimes   = "TIMES.TTF"
 	FontXingKai = "STXINGKA.TTF"
 )
@@ -54,7 +54,7 @@ func Init() {
 			fontCache[font] = fyne.NewStaticResource(font, data)
 			cacheMu.Unlock()
 		} else {
-			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), font, err)
+			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), font, err)
 		}
 	}
 
@@ -66,7 +66,7 @@ func Init() {
 			imageCache[img] = fyne.NewStaticResource(img, data)
 			cacheMu.Unlock()
 		} else {
-			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadImgError"), img, err)
+			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), img, err)
 		}
 	}
 }
@@ -96,7 +96,7 @@ func loadFontByName(fontName string) fyne.Resource {
 	// 从文件系统加载
 	data, err := fontFS.ReadFile(fontPath + fontName)
 	if err != nil {
-		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), fontName, err)
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), fontName, err)
 		// 返回 Fyne 默认字体，而不是 nil
 		return theme.DefaultTheme().Font(fyne.TextStyle{})
 	}
@@ -141,7 +141,7 @@ func LoadImage(name string) fyne.Resource {
 	// 从文件系统加载
 	data, err := fontFS.ReadFile(imagePath + name)
 	if err != nil {
-		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), name, err)
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), name, err)
 		return nil
 	}
 
