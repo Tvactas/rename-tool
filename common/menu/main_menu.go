@@ -1,10 +1,8 @@
 package menu
 
 import (
-	"fmt"
-
 	"rename-tool/common/admin"
-	"rename-tool/common/log"
+	"rename-tool/common/applog"
 	"rename-tool/common/theme"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
@@ -26,7 +24,7 @@ func ShowMainMenu() {
 	var image *canvas.Image
 	if imgResource == nil {
 		image = canvas.NewImageFromFile("")
-		log.LogError(fmt.Errorf("failed to load cat.png"))
+		applog.Logger.Printf("[THEME ERROR]  %s", i18n.LogTr("LoadImgError"))
 	} else {
 		image = canvas.NewImageFromResource(imgResource)
 	}

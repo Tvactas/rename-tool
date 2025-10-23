@@ -2,13 +2,13 @@ package theme
 
 import (
 	"embed"
-	"fmt"
 	"image/color"
 	"io/fs"
 	"sync"
 
-	"rename-tool/common/log"
+	"rename-tool/common/applog"
 	"rename-tool/setting/global"
+	"rename-tool/setting/i18n"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -54,7 +54,7 @@ func Init() {
 			fontCache[font] = fyne.NewStaticResource(font, data)
 			cacheMu.Unlock()
 		} else {
-			log.LogError(fmt.Errorf("failed to preload font %s: %v", font, err))
+			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), font, err)
 		}
 	}
 
@@ -66,7 +66,7 @@ func Init() {
 			imageCache[img] = fyne.NewStaticResource(img, data)
 			cacheMu.Unlock()
 		} else {
-			log.LogError(fmt.Errorf("failed to preload image %s: %v", img, err))
+			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadImgError"), img, err)
 		}
 	}
 }
@@ -96,7 +96,7 @@ func loadFontByName(fontName string) fyne.Resource {
 	// 从文件系统加载
 	data, err := fontFS.ReadFile(fontPath + fontName)
 	if err != nil {
-		log.LogError(fmt.Errorf("failed to load font %s: %v", fontName, err))
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), fontName, err)
 		// 返回 Fyne 默认字体，而不是 nil
 		return theme.DefaultTheme().Font(fyne.TextStyle{})
 	}
@@ -141,7 +141,7 @@ func LoadImage(name string) fyne.Resource {
 	// 从文件系统加载
 	data, err := fontFS.ReadFile(imagePath + name)
 	if err != nil {
-		log.LogError(fmt.Errorf("failed to load image %s: %v", name, err))
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadFontError"), name, err)
 		return nil
 	}
 

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"rename-tool/common/applog"
 	"rename-tool/common/log"
 	"rename-tool/setting/global"
 
@@ -18,31 +20,35 @@ func SaveLogs() {
 		return
 	}
 
-	content := ""
+	var sb strings.Builder
 	for _, log := range global.Logs {
-		content += fmt.Sprintf("%s > %s [%s]\n", log.Original, log.New, log.Time)
+		fmt.Fprintf(&sb, "%s > %s [%s]\n", log.Original, log.New, log.Time)
 	}
+	content := sb.String()
 
-	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(log.GetLogPath()), os.ModePerm); err != nil {
+	dir := filepath.Dir(log.GetLogPath())
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
 		dialog.ShowError(fmt.Errorf(tr("error_creating_directory")+": %v", err), global.MainWindow)
 		return
 	}
 
-	// Use temporary file for writing
 	tempPath := log.GetLogPath() + ".tmp"
 	if err := os.WriteFile(tempPath, []byte(content), 0644); err != nil {
+		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
 		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), global.MainWindow)
 		return
 	}
 
-	// Atomically rename temporary file
+	// Windows 需要先删除目标文件
+	_ = os.Remove(log.GetLogPath())
 	if err := os.Rename(tempPath, log.GetLogPath()); err != nil {
-		// Clean up temporary file
+		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
 		os.Remove(tempPath)
 		dialog.ShowError(fmt.Errorf(tr("error_saving_log")+": %v", err), global.MainWindow)
 		return
 	}
 
-	dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("success_saved")+" "+tr("logs_count")+" "+tr("files_count_with_path"), len(global.Logs), log.GetLogPath()), global.MainWindow)
+	message := fmt.Sprintf("%s %d %s %s", tr("success_saved"), len(global.Logs), tr("files_count_with_path"), log.GetLogPath())
+	dialog.ShowInformation(tr("success"), message, global.MainWindow)
 }

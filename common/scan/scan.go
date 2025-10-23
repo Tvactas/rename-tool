@@ -1,11 +1,11 @@
 package scan
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"rename-tool/common/applog"
 	"rename-tool/common/fs"
-	"rename-tool/common/log"
+	"rename-tool/setting/i18n"
 	"sort"
 	"strings"
 )
@@ -25,7 +25,7 @@ func ScanFormats(dir string) ([]string, error) {
 			if err != nil {
 				// 如果文件被占用，记录错误但继续处理其他文件
 				if fs.IsFileBusyError(err) {
-					log.LogError(fmt.Errorf("file busy: %s", path))
+					applog.Logger.Printf("[FILE ERROR] %s,%v", i18n.LogTr("FileStatus"), path)
 					return nil
 				}
 				return err

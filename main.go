@@ -3,9 +3,8 @@ package main
 //power by Tvacats
 import (
 	"embed"
-	"fmt"
 	"rename-tool/common/appinit"
-	"rename-tool/common/log"
+	"rename-tool/common/applog"
 	"rename-tool/common/menu"
 	"rename-tool/common/theme"
 	"rename-tool/setting/global"
@@ -16,9 +15,10 @@ import (
 var resourceFS embed.FS
 
 func main() {
+
 	// Initialize application with default configuration
 	if err := appinit.InitializeApp(appinit.DefaultConfig()); err != nil {
-		log.LogError(fmt.Errorf("failed to initialize application: %v", err))
+		applog.Logger.Printf("[ERROR]  %s %v", i18n.LogTr("InitAppError"), err)
 		return
 	}
 
@@ -30,6 +30,8 @@ func main() {
 }
 
 func init() {
+	applog.InitLogger("tvacats_rename.log")
+
 	// Initialize resource loader
 	theme.SetFontFS(resourceFS) // Set font file system
 	theme.Init()                // Initialize resource loader
@@ -50,10 +52,10 @@ func init() {
 	// List all embedded files
 	files, err := theme.ReadDir(".")
 	if err != nil {
-		log.LogError(fmt.Errorf("failed to read embedded files: %v", err))
+		applog.Logger.Printf("[INIT ERROR]  %s %v", i18n.LogTr("LoadThemeError"), err)
 		return
 	}
 	for _, file := range files {
-		log.LogError(fmt.Errorf("embedded file: %s", file.Name()))
+		applog.Logger.Printf("[LIST]   %s: %v", i18n.LogTr("FileList"), file.Name())
 	}
 }

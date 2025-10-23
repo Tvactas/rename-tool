@@ -20,17 +20,18 @@ import (
 
 // 获取应用数据目录 ~/.AppName/
 func GetAppDataDir() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		printError(i18n.Tr("get_home_dir_failed"), err)
+	appData := os.Getenv("APPDATA")
+	if appData == "" {
+		printError(i18n.Tr("get_home_dir_failed"), nil)
 		return "."
 	}
 
-	appDir := filepath.Join(homeDir, "."+config.AppName)
-	if err := os.MkdirAll(appDir, 0755); err != nil {
+	appDir := filepath.Join(appData, config.AppName)
+	if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
 		printError(i18n.Tr("create_app_dir_failed"), err)
 		return "."
 	}
+
 	return appDir
 }
 
