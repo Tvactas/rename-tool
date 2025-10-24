@@ -4,7 +4,7 @@ var log_translations = map[string]map[string]string{
 	"zh": {
 		"CreateWellKnownSidFail": "创建管理员组 SID 失败",
 		"CheckIsMember":          "无法检查当前用户是否在管理员组中",
-		"LoginIdentity":          "管理员检查结果:",
+		"LoginIdentity":          "管理员检查结果",
 		"ProgramCrashed":         "( ᵒ̴̶̷̤໐ᵒ̴̶̷̤ ),程序崩溃了",
 		"InitAppError":           "应用程序初始化失败",
 		"LoadThemeError":         "无法读取主题文件",
@@ -13,7 +13,7 @@ var log_translations = map[string]map[string]string{
 	"en": {
 		"CreateWellKnownSidFail": "Failed to create Administrators group SID",
 		"CheckIsMember":          "Unable to check if current user is in administrators group",
-		"LoginIdentity":          "Administrator check result:",
+		"LoginIdentity":          "Administrator check result",
 		"ProgramCrashed":         "( ᵒ̴̶̷̤໐ᵒ̴̶̷̤ ), the program crashed",
 		"InitAppError":           "failed to initialize application",
 		"LoadThemeError":         "failed to read theme files",
@@ -22,7 +22,7 @@ var log_translations = map[string]map[string]string{
 	"ja": {
 		"CreateWellKnownSidFail": "管理者グループのSIDを作成できませんでした",
 		"CheckIsMember":          "現在のユーザーが管理者グループに属しているかどうかを確認できません",
-		"LoginIdentity":          "管理者のチェック結果:",
+		"LoginIdentity":          "管理者のチェック結果",
 		"ProgramCrashed":         "( ᵒ̴̶̷̤໐ᵒ̴̶̷̤ )、プログラムがクラッシュしました",
 		"InitAppError":           "アプリケーションの初期化に失敗しました",
 		"LoadThemeError":         "テーマファイルを読み取れません",
@@ -48,14 +48,17 @@ var button_translations = map[string]map[string]string{
 	"zh": {
 		"UserPermissionsAD":   "管理员身份运行中",
 		"UserPermissionsUser": "普通用户身份运行中",
+		"SequenceRename":      "序列重命名",
 	},
 	"en": {
 		"UserPermissionsAD":   "Running as administrator",
 		"UserPermissionsUser": "Running as normal user",
+		"SequenceRename":      "Sequence Rename",
 	},
 	"ja": {
 		"UserPermissionsAD":   "管理者として実行する",
 		"UserPermissionsUser": "通常ユーザーとして実行",
+		"SequenceRename":      "シーケンスのリネーム",
 	},
 }
 
@@ -70,7 +73,6 @@ var Translations = map[string]map[string]string{
 		"exit":                              "退出",
 		"info":                              "提示",
 		"undo":                              "撤销重命名",
-		"batch":                             "批量重命名",
 		"camel":                             "驼峰格式",
 		"error":                             "错误",
 		"lower":                             "小写",
@@ -135,7 +137,6 @@ var Translations = map[string]map[string]string{
 		"permission_denied":                 "❌ 权限不足",
 		"please_select_dir":                 "请选择目录",
 		"read_files_failed":                 "读取文件失败",
-		"batch_rename_title":                "批量重命名(普通)",
 		"no_undo_operations":                "没有可撤销的操作",
 		"prefix_placeholder":                "前缀文本",
 		"scan_found_formats":                "找到 %d 种格式",
@@ -181,7 +182,6 @@ var Translations = map[string]map[string]string{
 		"exit":                              "Exit",
 		"info":                              "Info",
 		"undo":                              "Undo Rename",
-		"batch":                             "Batch Rename",
 		"camel":                             "Camel Case",
 		"error":                             "Error",
 		"lower":                             "lowercase",
@@ -246,7 +246,6 @@ var Translations = map[string]map[string]string{
 		"permission_denied":                 "❌ Permission denied",
 		"please_select_dir":                 "Please select a directory",
 		"read_files_failed":                 "Failed to read files",
-		"batch_rename_title":                "Batch Rename (Normal)",
 		"no_undo_operations":                "No operations to undo",
 		"prefix_placeholder":                "Prefix Text",
 		"scan_found_formats":                "Found %d formats",
@@ -292,7 +291,6 @@ var Translations = map[string]map[string]string{
 		"exit":                              "終了",
 		"info":                              "情報",
 		"undo":                              "リネームを元に戻す",
-		"batch":                             "一括リネーム",
 		"camel":                             "キャメルケース",
 		"error":                             "エラー",
 		"lower":                             "小文字",
@@ -357,7 +355,6 @@ var Translations = map[string]map[string]string{
 		"permission_denied":                 "❌ 権限が不足しています",
 		"please_select_dir":                 "ディレクトリを選択してください",
 		"read_files_failed":                 "ファイルの読み取りに失敗しました",
-		"batch_rename_title":                "一括リネーム（通常）",
 		"no_undo_operations":                "元に戻す操作がありません",
 		"prefix_placeholder":                "プレフィックステキスト",
 		"scan_found_formats":                "%d 種類のフォーマットを検出",

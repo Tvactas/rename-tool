@@ -1,9 +1,6 @@
 package admin
 
 import (
-	"rename-tool/common/applog"
-	"rename-tool/setting/i18n"
-
 	"golang.org/x/sys/windows"
 )
 
@@ -11,7 +8,7 @@ import (
 func IsAdmin() bool {
 	sid, err := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
 	if err != nil {
-		applog.Logger.Printf("[ADMIN ERROR]  %s: %v", i18n.LogTr("CreateWellKnownSidFail"), err)
+		logEvent("ADMIN ERROR", "CreateWellKnownSidFail", err)
 		return false
 	}
 
@@ -19,10 +16,11 @@ func IsAdmin() bool {
 
 	isMember, err := token.IsMember(sid)
 	if err != nil {
-		applog.Logger.Printf("[ADMIN ERROR]  %s: %v", i18n.LogTr("CheckIsMember"), err)
+		logEvent("ADMIN ERROR", "CheckIsMember", err)
+
 		return false
 	}
+	logEvent("ADMIN LOGIN", "LoginIdentity", isMember)
 
-	applog.Logger.Printf("[ADMIN LOGIN]  %s: %v", i18n.LogTr("LoginIdentity"), isMember)
 	return isMember
 }

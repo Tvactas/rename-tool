@@ -18,10 +18,10 @@ import (
 // ShowPreviewWindow 显示预览窗口
 func ShowPreviewWindow(parentWindow fyne.Window, files []string, config model.RenameConfig) {
 	// 创建预览窗口
-	previewWindow := global.MyApp.NewWindow(tr("preview") + " - " + tr("batch_rename_title"))
+	previewWindow := global.MyApp.NewWindow(tr("preview"))
 	previewWindow.Resize(fyne.NewSize(800, 600))
 	previewWindow.SetFixedSize(false)
-	
+
 	// 设置窗口关闭事件
 	previewWindow.SetCloseIntercept(func() {
 		previewWindow.Close()
@@ -34,10 +34,10 @@ func ShowPreviewWindow(parentWindow fyne.Window, files []string, config model.Re
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
 			file := files[id]
 			_, oldName := filepath.Split(file)
-			
+
 			var newPath string
 			var err error
-			
+
 			// 根据重命名类型生成新路径
 			switch config.Type {
 			case model.RenameTypeBatch:
@@ -55,12 +55,12 @@ func ShowPreviewWindow(parentWindow fyne.Window, files []string, config model.Re
 			case model.RenameTypeDeleteChar:
 				newPath, err = pathgen.GenerateDeleteCharRenamePath(file, config)
 			}
-			
+
 			if err != nil {
 				obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, err.Error()))
 				return
 			}
-			
+
 			_, newName := filepath.Split(newPath)
 			obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, newName))
 		},
@@ -68,19 +68,19 @@ func ShowPreviewWindow(parentWindow fyne.Window, files []string, config model.Re
 
 	// 创建标题
 	title := widget.NewLabelWithStyle(tr("preview"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	
+
 	// 创建文件计数标签
 	countLabel := widget.NewLabel(fmt.Sprintf(tr("total_files")+": %d", len(files)))
-	
+
 	// 创建关闭按钮
 	closeBtn := widget.NewButton(tr("close"), func() {
 		previewWindow.Close()
 	})
-	
+
 	// 创建布局
 	topBar := container.NewHBox(title, layout.NewSpacer(), countLabel)
 	bottomBar := container.NewHBox(layout.NewSpacer(), closeBtn)
-	
+
 	content := container.NewBorder(
 		topBar,
 		bottomBar,
@@ -88,7 +88,7 @@ func ShowPreviewWindow(parentWindow fyne.Window, files []string, config model.Re
 		nil,
 		previewList,
 	)
-	
+
 	previewWindow.SetContent(content)
 	previewWindow.Show()
 }

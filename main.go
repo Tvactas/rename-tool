@@ -31,7 +31,7 @@ func main() {
 
 func init() {
 	applog.InitLogger("tvacats_rename.log")
-
+	applog.Logger.Printf("[IMPORTANT] Email me with tvacats@gmail.com")
 	// Initialize resource loader
 	theme.SetFontFS(resourceFS) // Set font file system
 	theme.Init()                // Initialize resource loader

@@ -131,7 +131,6 @@ func ShowRenameUI(config RenameUIConfig) {
 
 	})
 
-
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
 		window.Close()
@@ -240,7 +239,6 @@ func ShowRenameUI(config RenameUIConfig) {
 		mainContent.Add(widget.NewSeparator())
 	}
 
-
 	// 底部按钮
 	bottomButtons := container.NewHBox(layout.NewSpacer(), previewBtn, backBtn, renameBtn)
 	mainContent.Add(bottomButtons)
@@ -252,6 +250,10 @@ func ShowRenameUI(config RenameUIConfig) {
 // tr 函数用于国际化
 func tr(key string) string {
 	return i18n.Tr(key)
+}
+
+func buttonTr(key string) string {
+	return i18n.ButtonTr(key)
 }
 
 // performRename 执行重命名操作
@@ -449,80 +451,3 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		}
 	}
 }
-
-// updatePreview 更新预览列表
-func updatePreview(previewList *widget.List, files []string, config model.RenameConfig) {
-	if len(files) == 0 {
-		previewList.Length = func() int { return 1 }
-		previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel(tr("no_files_found")) }
-		previewList.Refresh()
-		return
-	}
-
-	// 创建预览数据，保持原始顺序
-	previewData := make([]string, len(files))
-	copy(previewData, files)
-
-	// 创建本地计数器map，并按照文件扩展名分组初始化
-	counters := make(map[string]int)
-	for _, file := range files {
-		ext := filepath.Ext(file)
-		if _, exists := counters[ext]; !exists {
-			counters[ext] = 0
-		}
-		if config.FormatSpecificNumbering {
-			// 为后缀序号创建独立的计数器
-			suffixKey := ext + "_suffix"
-			if _, exists := counters[suffixKey]; !exists {
-				counters[suffixKey] = 0
-			}
-		}
-	}
-
-	// 预先计算所有新路径
-	newPaths := make([]string, len(files))
-	for i, file := range files {
-		var newPath string
-		var err error
-
-		switch config.Type {
-		case model.RenameTypeBatch:
-			// 在预览时使用相同的计数器逻辑
-			newPath, err = pathgen.GenerateBatchRenamePath(file, config, i, counters)
-		case model.RenameTypeExtension:
-			newPath, err = pathgen.GenerateExtensionRenamePath(file, config)
-		case model.RenameTypeCase:
-			newPath, err = pathgen.GenerateCaseRenamePath(file, config)
-		case model.RenameTypeInsertChar:
-			newPath, err = pathgen.GenerateInsertCharRenamePath(file, config)
-		case model.RenameTypeReplace:
-			newPath, err = pathgen.GenerateReplaceRenamePath(file, config)
-		case model.RenameTypeDeleteChar:
-			newPath, err = pathgen.GenerateDeleteCharRenamePath(file, config)
-		}
-
-		if err != nil {
-			newPaths[i] = err.Error()
-		} else {
-			newPaths[i] = newPath
-		}
-	}
-
-	previewList.Length = func() int { return len(previewData) }
-	previewList.CreateItem = func() fyne.CanvasObject { return widget.NewLabel("") }
-	previewList.UpdateItem = func(id widget.ListItemID, obj fyne.CanvasObject) {
-		oldPath := previewData[id]
-		_, oldName := filepath.Split(oldPath)
-		newPath := newPaths[id]
-
-		if strings.HasPrefix(newPath, "error:") {
-			obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, newPath))
-			return
-		}
-
-		_, newName := filepath.Split(newPath)
-		obj.(*widget.Label).SetText(fmt.Sprintf("%s → %s", oldName, newName))
-	}
-	previewList.Refresh()
-}
-

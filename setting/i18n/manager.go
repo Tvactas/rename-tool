@@ -19,7 +19,7 @@ type I18nManager struct {
 }
 
 var manager = &I18nManager{
-	currentLang: "en", // 默认使用英文
+	currentLang: "zh", // 默认使用中文
 	languages: []LanguageOption{
 		{DisplayName: "中文", Code: "zh"},
 		{DisplayName: "English", Code: "en"},

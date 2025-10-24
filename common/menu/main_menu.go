@@ -47,7 +47,7 @@ func ShowMainMenu() {
 		text   string
 		action func()
 	}{
-		{tr("batch"), func() { utils.ShowBatchRenameNormal() }},
+		{i18n.ButtonTr("SequenceRename"), func() { utils.ShowBatchRenameNormal() }},
 		{tr("ext"), func() { utils.ShowChangeExtension() }},
 		{tr("upper"), func() { utils.ShowRenameToCase("upper") }},
 		{tr("lower"), func() { utils.ShowRenameToCase("lower") }},
