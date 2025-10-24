@@ -11,6 +11,7 @@ import (
 	"rename-tool/common/dirpath"
 	filestatus "rename-tool/common/fs"
 	"rename-tool/common/pathgen"
+	"rename-tool/common/preview"
 	"rename-tool/common/progress"
 	"rename-tool/common/scan"
 	"rename-tool/common/theme"
@@ -51,7 +52,6 @@ func ShowRenameUI(config RenameUIConfig) {
 	title := widget.NewLabelWithStyle(config.Title, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	// 目录选择
-	var onDirChanged func()
 	formatLabel := widget.NewLabel(tr("scan_format") + ": " + tr("scan_not_started"))
 	formatListContainer := container.NewGridWithColumns(4)
 	selectAllBtn := widget.NewButton(tr("select_all"), nil)
@@ -60,6 +60,12 @@ func ShowRenameUI(config RenameUIConfig) {
 	// 存储格式复选框的映射
 	formatChecks := make(map[string]*widget.Check)
 
+	// 创建格式列表的滚动容器（初始化时就创建）
+	formatScroll := container.NewScroll(formatListContainer)
+	formatScroll.SetMinSize(fyne.NewSize(0, 200))
+	formatScroll.Resize(fyne.NewSize(0, 200))
+
+	var onDirChanged func()
 	onDirChanged = func() {
 		// 路径变更时清空格式相关内容
 		formatListContainer.Objects = nil
@@ -67,14 +73,10 @@ func ShowRenameUI(config RenameUIConfig) {
 		formatLabel.SetText(tr("scan_format") + ": " + tr("scan_not_started"))
 		selectAllBtn.Hide()
 		formatListContainer.Refresh()
+		formatScroll.Refresh()
+		window.Content().Refresh()
 	}
 	dirSelector := dirpath.CreateDirSelector(window, onDirChanged)
-
-	// 创建格式列表的滚动容器
-	formatScroll := container.NewScroll(formatListContainer)
-	formatScroll.SetMinSize(fyne.NewSize(0, 0))
-	formatContainer := container.NewStack(formatScroll)
-	formatContainer.Resize(fyne.NewSize(0, 200))
 
 	// 扫描按钮
 	scanBtn := widget.NewButton(tr("scan_format"), func() {
@@ -125,16 +127,10 @@ func ShowRenameUI(config RenameUIConfig) {
 		selectAllBtn.Show()
 		formatListContainer.Refresh()
 		formatScroll.Refresh()
+		window.Content().Refresh()
 
 	})
 
-	// 预览区域
-	previewLabel := widget.NewLabel(tr("preview") + ":")
-	previewList := widget.NewList(
-		func() int { return 0 },
-		func() fyne.CanvasObject { return widget.NewLabel("") },
-		func(id widget.ListItemID, obj fyne.CanvasObject) {},
-	)
 
 	// 底部按钮
 	backBtn := widget.NewButton(tr("back"), func() {
@@ -219,17 +215,13 @@ func ShowRenameUI(config RenameUIConfig) {
 			return
 		}
 
-		// 更新预览
-		updatePreview(previewList, files, renameConfig)
-
-		// 强制刷新UI
-		previewList.Refresh()
+		// 打开预览界面
+		preview.ShowPreviewWindow(window, files, renameConfig)
 	})
 
 	// 布局
 	dirBox := container.NewHBox(dirSelector, scanBtn)
 	formatBox := container.NewHBox(formatLabel, selectAllBtn)
-	previewBox := container.NewBorder(previewLabel, nil, nil, nil, previewList)
 
 	// 创建主内容
 	mainContent := container.NewVBox(
@@ -238,7 +230,7 @@ func ShowRenameUI(config RenameUIConfig) {
 		dirBox,
 		widget.NewSeparator(),
 		formatBox,
-		formatContainer,
+		formatScroll,
 		widget.NewSeparator(),
 	)
 
@@ -248,8 +240,6 @@ func ShowRenameUI(config RenameUIConfig) {
 		mainContent.Add(widget.NewSeparator())
 	}
 
-	mainContent.Add(previewBox)
-	mainContent.Add(widget.NewSeparator())
 
 	// 底部按钮
 	bottomButtons := container.NewHBox(layout.NewSpacer(), previewBtn, backBtn, renameBtn)
@@ -535,3 +525,4 @@ func updatePreview(previewList *widget.List, files []string, config model.Rename
 	}
 	previewList.Refresh()
 }
+

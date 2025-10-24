@@ -54,9 +54,23 @@ func GetCurrentDir() string {
 	return dir
 }
 
+// truncatePath 截断路径，超出长度用省略号显示
+func truncatePath(path string, maxLength int) string {
+	if len(path) <= maxLength {
+		return path
+	}
+	
+	if maxLength <= 3 {
+		return "..."
+	}
+	
+	// 保留前面的部分，用省略号连接
+	return path[:maxLength-3] + "..."
+}
+
 // 创建目录选择器组件
 func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
-	label := widget.NewLabel(i18n.Tr("dir") + ": " + global.SelectedDir)
+	label := widget.NewLabel(i18n.Tr("dir") + ": " + truncatePath(global.SelectedDir, 50))
 	button := widget.NewButton(i18n.Tr("select_dir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err != nil {
@@ -66,7 +80,7 @@ func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 			}
 			if uri != nil {
 				global.SelectedDir = uri.Path()
-				label.SetText(i18n.Tr("dir") + ": " + global.SelectedDir)
+				label.SetText(i18n.Tr("dir") + ": " + truncatePath(global.SelectedDir, 50))
 				if onDirChanged != nil {
 					onDirChanged()
 				}

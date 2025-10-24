@@ -18,7 +18,7 @@ func main() {
 
 	// Initialize application with default configuration
 	if err := appinit.InitializeApp(appinit.DefaultConfig()); err != nil {
-		applog.Logger.Printf("[ERROR]  %s %v", i18n.LogTr("InitAppError"), err)
+		applog.Logger.Printf("[INIT ERROR]  %s %v", i18n.LogTr("InitAppError"), err)
 		return
 	}
 
