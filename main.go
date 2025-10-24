@@ -11,7 +11,7 @@ import (
 	"rename-tool/setting/i18n"
 )
 
-//go:embed src/font/* src/img/*
+//go:embed  src/img/*
 var resourceFS embed.FS
 
 func main() {

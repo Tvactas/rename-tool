@@ -125,6 +125,7 @@ func ShowRenameUI(config RenameUIConfig) {
 		selectAllBtn.Show()
 		formatListContainer.Refresh()
 		formatScroll.Refresh()
+
 	})
 
 	// 预览区域

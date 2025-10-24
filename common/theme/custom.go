@@ -17,15 +17,7 @@ import (
 
 // 路径常量
 const (
-	fontPath  = "src/font/"
 	imagePath = "src/img/"
-)
-
-// 字体名称常量
-const (
-	FontJP      = "NOTOSANSJP.TTF"
-	FontTimes   = "TIMES.TTF"
-	FontXingKai = "STXINGKA.TTF"
 )
 
 // Resource file system
@@ -34,7 +26,6 @@ var fontFS embed.FS
 // Resource cache with mutex protection
 var (
 	imageCache = make(map[string]fyne.Resource)
-	fontCache  = make(map[string]fyne.Resource)
 	cacheMu    sync.RWMutex
 )
 
@@ -45,17 +36,6 @@ func SetFontFS(fs embed.FS) {
 
 // Init initializes the resource loader and preloads fonts and images
 func Init() {
-	// 预加载字体
-	fonts := []string{FontTimes, FontXingKai, FontJP}
-	for _, font := range fonts {
-		if data, err := fontFS.ReadFile(fontPath + font); err == nil {
-			cacheMu.Lock()
-			fontCache[font] = fyne.NewStaticResource(font, data)
-			cacheMu.Unlock()
-		} else {
-			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), font, err)
-		}
-	}
 
 	// 预加载图片
 	images := []string{"cat.png"}
@@ -68,64 +48,6 @@ func Init() {
 			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), img, err)
 		}
 	}
-}
-
-// GetFontNameByLang returns the appropriate font name based on the current language
-func GetFontNameByLang() string {
-	lang := i18n.GetManager().CurrentLang()
-	switch lang {
-	case "zh":
-		return FontXingKai
-	case "ja":
-		return FontJP
-	default:
-		return FontTimes
-	}
-}
-
-// loadFontByName 统一的字体加载函数，失败时返回系统默认字体
-func loadFontByName(fontName string) fyne.Resource {
-	// 检查缓存
-	cacheMu.RLock()
-	if font, ok := fontCache[fontName]; ok {
-		cacheMu.RUnlock()
-		return font
-	}
-	cacheMu.RUnlock()
-
-	// 从文件系统加载
-	data, err := fontFS.ReadFile(fontPath + fontName)
-	if err != nil {
-		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), fontName, err)
-		// 返回 Fyne 默认字体，而不是 nil
-		return theme.DefaultTheme().Font(fyne.TextStyle{})
-	}
-
-	// 创建资源并缓存
-	font := fyne.NewStaticResource(fontName, data)
-	cacheMu.Lock()
-	fontCache[fontName] = font
-	cacheMu.Unlock()
-
-	return font
-}
-
-// LoadFont loads the appropriate font based on the current language
-func LoadFont(style fyne.TextStyle) fyne.Resource {
-	font := loadFontByName(GetFontNameByLang())
-	if font == nil {
-		return theme.DefaultTheme().Font(style)
-	}
-	return font
-}
-
-// LoadDefaultFont loads the default Times New Roman font
-func LoadDefaultFont() fyne.Resource {
-	font := loadFontByName(FontTimes)
-	if font == nil {
-		return theme.DefaultTheme().Font(fyne.TextStyle{})
-	}
-	return font
 }
 
 // LoadImage loads an image resource by name
@@ -190,7 +112,7 @@ func (m *MainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) c
 }
 
 func (m *MainTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return LoadFont(style)
+	return theme.DefaultTheme().Font(style)
 }
 
 func (m *MainTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
@@ -212,7 +134,7 @@ func (m *OtherTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) 
 }
 
 func (m *OtherTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return LoadDefaultFont()
+	return theme.DefaultTheme().Font(style)
 }
 
 func (m *OtherTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
