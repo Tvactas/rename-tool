@@ -16,5 +16,4 @@ var (
 	CurrentDir  string
 	Logs        []RenameLog
 	SelectedDir string
-	Lang        string = "en"
 )

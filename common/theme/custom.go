@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"rename-tool/common/applog"
-	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 
 	"fyne.io/fyne/v2"
@@ -73,7 +72,8 @@ func Init() {
 
 // GetFontNameByLang returns the appropriate font name based on the current language
 func GetFontNameByLang() string {
-	switch global.Lang {
+	lang := i18n.GetManager().CurrentLang()
+	switch lang {
 	case "zh":
 		return FontXingKai
 	case "ja":

@@ -41,6 +41,9 @@ func (i *I18nManager) SetLanguage(lang string) {
 		}
 	}
 }
+func (m *I18nManager) CurrentLang() string {
+	return m.currentLang
+}
 
 // GetLanguage 获取当前语言
 func (i *I18nManager) GetLanguage() string {
