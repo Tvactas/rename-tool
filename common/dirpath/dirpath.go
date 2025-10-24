@@ -9,7 +9,6 @@ import (
 
 	"rename-tool/common/applog"
 	"rename-tool/common/fs"
-	"rename-tool/setting/config"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 
@@ -18,23 +17,6 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
-
-// 获取应用数据目录 ~/.AppName/
-func GetAppDataDir() string {
-	appData := os.Getenv("APPDATA")
-	if appData == "" {
-		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("get_home_dir_failed"), nil)
-		return "."
-	}
-
-	appDir := filepath.Join(appData, config.AppName)
-	if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
-		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("create_app_dir_failed"), err)
-		return "."
-	}
-
-	return appDir
-}
 
 // 获取指定目录下的符合格式的所有文件
 func GetFiles(root string, formats []string) ([]string, error) {

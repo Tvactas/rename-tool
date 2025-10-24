@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"rename-tool/setting/config"
 	"sync"
 )
 
@@ -27,18 +28,17 @@ type logFileWriter struct {
 func newLogFileWriter(fileName string) *logFileWriter {
 	lw := &logFileWriter{}
 
-	// 1. 用户目录
-	if home, err := os.UserHomeDir(); err == nil {
-		path := filepath.Join(home, fileName)
-		if file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm); err == nil {
-			lw.file = file
-			lw.writer = bufio.NewWriter(file)
-			return lw
-		}
+	// 1. 优先使用 Windows 用户 AppData 目录（规范做法）
+	userDir := getUserDir()
+	path := filepath.Join(userDir, fileName)
+	if file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm); err == nil {
+		lw.file = file
+		lw.writer = bufio.NewWriter(file)
+		return lw
 	}
 
 	// 2. D盘
-	path := filepath.Join("D:\\", fileName)
+	path = filepath.Join("D:\\", fileName)
 	if file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm); err == nil {
 		lw.file = file
 		lw.writer = bufio.NewWriter(file)
@@ -85,4 +85,32 @@ func InitLogger(fileName string) {
 			logWriter.Close()
 		}()
 	})
+}
+
+// GetUserDir 返回程序的用户数据目录（Windows 专用）。
+// 优先使用 APPDATA，如果没有则回退到用户主目录。
+// 最终路径形如：C:\Users\<user>\AppData\Roaming\<AppName>
+func getUserDir() string {
+	// 先尝试获取 APPDATA
+	appData := os.Getenv("APPDATA")
+	if appData != "" {
+		return appData
+	}
+
+	// 如果 APPDATA 不存在，则退回用户主目录
+	home, err := os.UserHomeDir()
+	if err != nil {
+		// 最坏情况：返回当前目录
+		return "."
+	}
+	return home
+}
+
+func GetLogPath() string {
+	appDir := getUserDir()
+	logDir := filepath.Join(appDir, config.LogDir)
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		return filepath.Join(appDir, "rename.log")
+	}
+	return filepath.Join(logDir, "rename.log")
 }
