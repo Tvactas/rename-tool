@@ -26,7 +26,7 @@ func DefaultConfig() AppConfig {
 	return AppConfig{
 		AppID:      "com.tencats.renametool",
 		WindowSize: fyne.NewSize(600, 400),
-		FixedSize:  true,
+		FixedSize:  false,
 	}
 }
 

@@ -54,17 +54,18 @@ func GetCurrentDir() string {
 	return dir
 }
 
-// truncatePath 截断路径，超出长度用省略号显示
+// truncatePath 截断路径，超出长度用省略号显示，保持固定长度
 func truncatePath(path string, maxLength int) string {
 	if len(path) <= maxLength {
-		return path
+		// 如果路径长度小于等于最大长度，用空格填充到固定长度
+		return path + strings.Repeat(" ", maxLength-len(path))
 	}
 	
 	if maxLength <= 3 {
-		return "..."
+		return strings.Repeat(".", maxLength)
 	}
 	
-	// 保留前面的部分，用省略号连接
+	// 保留前面的部分，用省略号连接，确保总长度固定
 	return path[:maxLength-3] + "..."
 }
 

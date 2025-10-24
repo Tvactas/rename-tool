@@ -43,7 +43,7 @@ func ShowRenameUI(config RenameUIConfig) {
 	global.MainWindow.Hide()
 	window := global.MyApp.NewWindow(config.Title)
 	window.Resize(fyne.NewSize(600, 500))
-	window.SetFixedSize(true)
+	window.SetFixedSize(false)
 	window.SetCloseIntercept(func() {
 		global.MyApp.Quit()
 	})
