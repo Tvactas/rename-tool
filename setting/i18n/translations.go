@@ -50,24 +50,25 @@ var button_translations = map[string]map[string]string{
 		"UserPermissionsAD":   "管理员身份运行中",
 		"UserPermissionsUser": "普通用户身份运行中",
 		"SequenceRename":      "序列重命名",
+		"ExtensionModify":     "修改扩展名",
 		"Dir":                 "目录",
-
-		"SelectDir": "选择目录",
+		"SelectDir":           "选择目录",
 	},
 	"en": {
 		"AppName":             "File Rename Tool",
 		"UserPermissionsAD":   "Running as administrator",
 		"UserPermissionsUser": "Running as normal user",
 		"SequenceRename":      "Sequence Rename",
+		"ExtensionModify":     "Change Extension",
 		"Dir":                 "Directory",
-
-		"SelectDir": "Select Directory",
+		"SelectDir":           "Select Directory",
 	},
 	"ja": {
 		"AppName":             "ファイル名変更ツール",
 		"UserPermissionsAD":   "管理者として実行する",
 		"UserPermissionsUser": "通常ユーザーとして実行",
 		"SequenceRename":      "シーケンスのリネーム",
+		"ExtensionModify":     "拡張子変更",
 		"Dir":                 "ディレクトリ",
 		"SelectDir":           "ディレクトリを選択",
 	},
@@ -97,7 +98,6 @@ var text_translations = map[string]map[string]string{
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
-		"ext":                               "修改扩展名",
 		"log":                               "保存日志",
 		"back":                              "返回",
 		"copy":                              "复制",
@@ -197,7 +197,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"en": {
-		"ext":                               "Change Extension",
 		"log":                               "Save Log",
 		"back":                              "Back",
 		"copy":                              "Copy",
@@ -297,7 +296,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"ja": {
-		"ext":                               "拡張子変更",
 		"log":                               "ログを保存",
 		"back":                              "戻る",
 		"copy":                              "コピー",

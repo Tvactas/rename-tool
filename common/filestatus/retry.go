@@ -51,11 +51,8 @@ func RenameFile(oldPath, newPath string) error {
 		delay *= 2
 	}
 
-	return &AppError{
-		Code:    "RENAME_FAILED",
-		Message: fmt.Sprintf(i18n.Tr("rename_failed_format"), oldPath, newPath),
-		Err:     err,
-	}
+	return fmt.Errorf("%s: %s → %s", i18n.Tr("rename_failed_format"), oldPath, newPath)
+
 }
 
 // RetryRenameForFile attempts to rename the file to a temp path and revert to check file busy.

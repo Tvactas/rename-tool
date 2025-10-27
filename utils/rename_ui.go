@@ -266,11 +266,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
-		dialog.ShowError(&filestatus.AppError{
-			Code:    "FILE_LIST_ERROR",
-			Message: tr("error_getting_files"),
-			Err:     err,
-		}, window)
+		dialog.ShowError(fmt.Errorf("%s", i18n.Tr("error_getting_files")), window)
 		return
 	}
 

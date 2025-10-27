@@ -48,7 +48,7 @@ func ShowMainMenu() {
 		action func()
 	}{
 		{buttonTr("SequenceRename"), func() { utils.ShowBatchRenameNormal() }},
-		{tr("ext"), func() { utils.ShowChangeExtension() }},
+		{buttonTr("ExtensionModify"), func() { utils.ShowChangeExtension() }},
 		{tr("upper"), func() { utils.ShowRenameToCase("upper") }},
 		{tr("lower"), func() { utils.ShowRenameToCase("lower") }},
 		{tr("titlecase"), func() { utils.ShowRenameToCase("title") }},
@@ -85,7 +85,7 @@ func ShowMainMenu() {
 		layout.NewSpacer(),
 		adminStatus,
 		layout.NewSpacer(),
-		widget.NewLabel(tr("title")),
+		widget.NewLabel(i18n.ButtonTr("AppName")),
 	)
 
 	content := container.NewVBox(
