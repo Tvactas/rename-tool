@@ -36,7 +36,7 @@ func newLogFileWriter(fileName string) *logFileWriter {
 
 	// 3. 都失败则丢弃
 	lw.writer = bufio.NewWriter(io.Discard)
-	return lws
+	return lw
 }
 
 func getUserDir() string {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"rename-tool/common/dirpath"
-	filestatus "rename-tool/common/fs"
+	"rename-tool/common/filestatus"
 	"rename-tool/common/pathgen"
 	"rename-tool/common/preview"
 	"rename-tool/common/progress"

@@ -69,8 +69,7 @@ var button_translations = map[string]map[string]string{
 		"UserPermissionsUser": "通常ユーザーとして実行",
 		"SequenceRename":      "シーケンスのリネーム",
 		"Dir":                 "ディレクトリ",
-
-		"SelectDir": "ディレクトリを選択",
+		"SelectDir":           "ディレクトリを選択",
 	},
 }
 
@@ -119,7 +118,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d 条日志",
 		"processing":                        "处理中",
 		"select_all":                        "全选",
-		"walk_error":                        "遍历目录失败",
 		"delete_char":                       "删除字符",
 		"example_ext":                       "示例: .jpg",
 		"files_count":                       "%d 个文件",
@@ -220,7 +218,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d logs",
 		"processing":                        "Processing",
 		"select_all":                        "Select All",
-		"walk_error":                        "Failed to walk through directory",
 		"delete_char":                       "Delete Characters",
 		"example_ext":                       "Example: .jpg",
 		"files_count":                       "%d files",
@@ -321,7 +318,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d ログ",
 		"processing":                        "処理中",
 		"select_all":                        "すべて選択",
-		"walk_error":                        "ディレクトリの走査に失敗しました",
 		"delete_char":                       "文字削除",
 		"example_ext":                       "例: .jpg",
 		"files_count":                       "%d ファイル",

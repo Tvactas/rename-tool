@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"rename-tool/common/fs"
+	"rename-tool/common/filestatus"
 	"rename-tool/setting/global"
-	"rename-tool/setting/i18n"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -24,10 +23,10 @@ func GetFiles(root string, formats []string) ([]string, error) {
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			if fs.IsFileBusyError(err) {
+			if filestatus.IsFileBusyError(err) {
 				return nil // 忽略文件占用错误
 			}
-			return errors.New(i18n.Tr("walk_error") + ": " + err.Error())
+			return errors.New(textTr("FailReadFiles") + ": " + err.Error())
 		}
 		if !info.IsDir() && (len(formatsMap) == 0 || formatsMap[strings.ToLower(filepath.Ext(path))]) {
 			files = append(files, path)

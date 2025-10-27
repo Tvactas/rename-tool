@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	filestatus "rename-tool/common/fs"
+	"rename-tool/common/filestatus"
 	"rename-tool/setting/global"
 
 	"fyne.io/fyne/v2/dialog"
