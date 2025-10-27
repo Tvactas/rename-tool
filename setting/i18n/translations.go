@@ -50,18 +50,27 @@ var button_translations = map[string]map[string]string{
 		"UserPermissionsAD":   "管理员身份运行中",
 		"UserPermissionsUser": "普通用户身份运行中",
 		"SequenceRename":      "序列重命名",
+		"Dir":                 "目录",
+
+		"SelectDir": "选择目录",
 	},
 	"en": {
 		"AppName":             "File Rename Tool",
 		"UserPermissionsAD":   "Running as administrator",
 		"UserPermissionsUser": "Running as normal user",
 		"SequenceRename":      "Sequence Rename",
+		"Dir":                 "Directory",
+
+		"SelectDir": "Select Directory",
 	},
 	"ja": {
 		"AppName":             "ファイル名変更ツール",
 		"UserPermissionsAD":   "管理者として実行する",
 		"UserPermissionsUser": "通常ユーザーとして実行",
 		"SequenceRename":      "シーケンスのリネーム",
+		"Dir":                 "ディレクトリ",
+
+		"SelectDir": "ディレクトリを選択",
 	},
 }
 
@@ -70,23 +79,25 @@ var text_translations = map[string]map[string]string{
 		"FailInitAppID":        "初始化应用失败",
 		"FailCreateMainWindow": "创建主窗口失败",
 		"FailGetCurrentDir":    "获取当前目录失败",
+		"FailReadFiles":        "读取文件失败",
 	},
 	"en": {
 		"FailInitAppID":        "Failed to initialize application",
 		"FailCreateMainWindow": "Failed to create main window",
 		"FailGetCurrentDir":    "Failed to get current directory",
+		"FailReadFiles":        "Failed to read files",
 	},
 	"ja": {
 		"FailInitAppID":        "アプリケーションの初期化に失敗しました",
 		"FailCreateMainWindow": "メインウィンドウの作成に失敗しました",
 		"FailGetCurrentDir":    "現在のディレクトリの取得に失敗しました",
+		"FailReadFiles":        "ファイルの読み取りに失敗しました",
 	},
 }
 
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
-		"dir":                               "目录",
 		"ext":                               "修改扩展名",
 		"log":                               "保存日志",
 		"back":                              "返回",
@@ -108,7 +119,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d 条日志",
 		"processing":                        "处理中",
 		"select_all":                        "全选",
-		"select_dir":                        "选择目录",
 		"walk_error":                        "遍历目录失败",
 		"delete_char":                       "删除字符",
 		"example_ext":                       "示例: .jpg",
@@ -155,7 +165,6 @@ var Translations = map[string]map[string]string{
 		"invalid_operation":                 "❌ 无效的操作",
 		"permission_denied":                 "❌ 权限不足",
 		"please_select_dir":                 "请选择目录",
-		"read_files_failed":                 "读取文件失败",
 		"no_undo_operations":                "没有可撤销的操作",
 		"prefix_placeholder":                "前缀文本",
 		"scan_found_formats":                "找到 %d 种格式",
@@ -190,7 +199,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"en": {
-		"dir":                               "Directory",
 		"ext":                               "Change Extension",
 		"log":                               "Save Log",
 		"back":                              "Back",
@@ -212,7 +220,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d logs",
 		"processing":                        "Processing",
 		"select_all":                        "Select All",
-		"select_dir":                        "Select Directory",
 		"walk_error":                        "Failed to walk through directory",
 		"delete_char":                       "Delete Characters",
 		"example_ext":                       "Example: .jpg",
@@ -259,7 +266,6 @@ var Translations = map[string]map[string]string{
 		"invalid_operation":                 "❌ Invalid operation",
 		"permission_denied":                 "❌ Permission denied",
 		"please_select_dir":                 "Please select a directory",
-		"read_files_failed":                 "Failed to read files",
 		"no_undo_operations":                "No operations to undo",
 		"prefix_placeholder":                "Prefix Text",
 		"scan_found_formats":                "Found %d formats",
@@ -294,7 +300,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"ja": {
-		"dir":                               "ディレクトリ",
 		"ext":                               "拡張子変更",
 		"log":                               "ログを保存",
 		"back":                              "戻る",
@@ -316,7 +321,6 @@ var Translations = map[string]map[string]string{
 		"logs_count":                        "%d ログ",
 		"processing":                        "処理中",
 		"select_all":                        "すべて選択",
-		"select_dir":                        "ディレクトリを選択",
 		"walk_error":                        "ディレクトリの走査に失敗しました",
 		"delete_char":                       "文字削除",
 		"example_ext":                       "例: .jpg",
@@ -363,7 +367,6 @@ var Translations = map[string]map[string]string{
 		"invalid_operation":                 "❌ 無効な操作",
 		"permission_denied":                 "❌ 権限が不足しています",
 		"please_select_dir":                 "ディレクトリを選択してください",
-		"read_files_failed":                 "ファイルの読み取りに失敗しました",
 		"no_undo_operations":                "元に戻す操作がありません",
 		"prefix_placeholder":                "プレフィックステキスト",
 		"scan_found_formats":                "%d 種類のフォーマットを検出",
