@@ -3,8 +3,7 @@ package config
 import "time"
 
 const (
-	AppName = "rename-tool"
-	LogDir  = "logs"
+	LogDir = "logs"
 
 	// 文件操作相关常量
 	MaxRetryAttempts = 3

@@ -43,13 +43,11 @@ func GetFiles(root string, formats []string) ([]string, error) {
 	return files, nil
 }
 
-// 获取当前工作目录
 func GetCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		applog.Logger.Printf("[PATH ERROR]  %s: %v", i18n.Tr("get_current_dir_failed"), err)
-
-		return "" // 明确表明失败
+		logEvent("PATH ERROR", "FailGetCurrentDir", err)
+		return ""
 	}
 	return dir
 }
@@ -60,11 +58,11 @@ func truncatePath(path string, maxLength int) string {
 		// 如果路径长度小于等于最大长度，用空格填充到固定长度
 		return path + strings.Repeat(" ", maxLength-len(path))
 	}
-	
+
 	if maxLength <= 3 {
 		return strings.Repeat(".", maxLength)
 	}
-	
+
 	// 保留前面的部分，用省略号连接，确保总长度固定
 	return path[:maxLength-3] + "..."
 }

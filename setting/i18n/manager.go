@@ -70,6 +70,9 @@ func ButtonTr(key string) string {
 func DialogTr(key string) string {
 	return dialog_translations[manager.currentLang][key]
 }
+func TextTr(key string) string {
+	return text_translations[manager.currentLang][key]
+}
 
 // LangSelect 创建语言选择器组件
 func LangSelect() fyne.CanvasObject {

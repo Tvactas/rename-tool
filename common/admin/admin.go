@@ -16,7 +16,7 @@ func IsAdmin() bool {
 
 	isMember, err := token.IsMember(sid)
 	if err != nil {
-		logEvent("ADMIN ERROR", "CheckIsMember", err)
+		logEvent("ADMIN ERROR", "FailCheckMember", err)
 
 		return false
 	}
