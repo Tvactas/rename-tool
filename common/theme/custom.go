@@ -45,7 +45,7 @@ func Init() {
 			imageCache[img] = fyne.NewStaticResource(img, data)
 			cacheMu.Unlock()
 		} else {
-			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), img, err)
+			applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("loadThemeError"), img, err)
 		}
 	}
 }
@@ -63,7 +63,7 @@ func LoadImage(name string) fyne.Resource {
 	// 从文件系统加载
 	data, err := fontFS.ReadFile(imagePath + name)
 	if err != nil {
-		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("LoadThemeError"), name, err)
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("loadThemeError"), name, err)
 		return nil
 	}
 

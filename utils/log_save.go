@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"rename-tool/common/applog"
+	"rename-tool/common/dialogcustomize"
 	"rename-tool/common/ui"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
@@ -17,7 +18,8 @@ import (
 // SaveLogs handles saving the operation logs
 func SaveLogs() {
 	if len(global.Logs) == 0 {
-		dialog.ShowInformation(tr("info"), tr("no_operations_to_save"), global.MainWindow)
+		dialogcustomize.ShowCustomDialog(dialogTr("warning"), dialogTr("noLogSaved"), global.MainWindow)
+
 		return
 	}
 
@@ -50,6 +52,6 @@ func SaveLogs() {
 		return
 	}
 
-	message := fmt.Sprintf("%s %d %s %s", i18n.DialogTr("SuccessSaved"), len(global.Logs), i18n.DialogTr("files_count_with_path"), applog.GetLogPath())
+	message := fmt.Sprintf("%d %s %s", len(global.Logs), i18n.DialogTr("successSavedTo"), applog.GetLogPath())
 	ui.ShowWidePlainMessage(global.MainWindow, dialogTr("success"), message)
 }

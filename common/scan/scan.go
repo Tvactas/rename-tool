@@ -25,7 +25,7 @@ func ScanFormats(dir string) ([]string, error) {
 			if err != nil {
 				// 如果文件被占用，记录错误但继续处理其他文件
 				if filestatus.IsFileBusyError(err) {
-					applog.Logger.Printf("[FILE ERROR] %s,%v", i18n.LogTr("FileStatus"), path)
+					applog.Logger.Printf("[FILE ERROR] %s,%v", i18n.LogTr("fileStatus"), path)
 					return nil
 				}
 				return err

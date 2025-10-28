@@ -18,7 +18,7 @@ func RecoverPanic() {
 		applog.Logger.Printf("[PANIC] %v\nStack:\n%s", r, stack)
 
 		// 弹窗提示（因为没有控制台）
-		message := fmt.Sprintf("%s\n\n%v", i18n.LogTr("ProgramCrashed"), r)
+		message := fmt.Sprintf("%s\n\n%v", i18n.LogTr("programCrashed"), r)
 		windows.MessageBox(0, windows.StringToUTF16Ptr(message), windows.StringToUTF16Ptr("程序异常"), windows.MB_ICONERROR)
 
 		// 退出程序

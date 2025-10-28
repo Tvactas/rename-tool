@@ -44,10 +44,9 @@ func InitLogger(fileName string) {
 		logWriter = newLogFileWriter(fileName)
 		Logger = log.New(logWriter, "", log.LstdFlags)
 
-		// 程序退出时自动关闭
 		go func() {
 			c := make(chan os.Signal, 1)
-			<-c // 可自行处理退出信号
+			<-c
 			logWriter.Close()
 		}()
 	})

@@ -245,7 +245,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	pd.Hide()
 
 	if pd.IsCancelled() {
-		dialog.ShowInformation(tr("info"), tr("operation_cancelled"), window)
+		dialog.ShowInformation(dialogTr("warning"), tr("operation_cancelled"), window)
 		return
 	}
 

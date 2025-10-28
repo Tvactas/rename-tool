@@ -24,7 +24,7 @@ func ShowMainMenu() {
 	var image *canvas.Image
 	if imgResource == nil {
 		image = canvas.NewImageFromFile("")
-		applog.Logger.Printf("[THEME ERROR]  %s", i18n.LogTr("LoadThemeError"))
+		applog.Logger.Printf("[THEME ERROR]  %s", i18n.LogTr("loadThemeError"))
 	} else {
 		image = canvas.NewImageFromResource(imgResource)
 	}

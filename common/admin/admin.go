@@ -8,7 +8,7 @@ import (
 func IsAdmin() bool {
 	sid, err := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
 	if err != nil {
-		logEvent("ADMIN ERROR", "CreateWellKnownSidFail", err)
+		logEvent("ADMIN ERROR", "createWellKnownSidFail", err)
 		return false
 	}
 
@@ -16,11 +16,11 @@ func IsAdmin() bool {
 
 	isMember, err := token.IsMember(sid)
 	if err != nil {
-		logEvent("ADMIN ERROR", "FailCheckMember", err)
+		logEvent("ADMIN ERROR", "failCheckMember", err)
 
 		return false
 	}
-	logEvent("ADMIN LOGIN", "LoginIdentity", isMember)
+	logEvent("ADMIN LOGIN", "loginIdentity", isMember)
 
 	return isMember
 }

@@ -15,9 +15,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// =======================
-// UI 组件结构体
-// =======================
 type RenameUIComponents struct {
 	Window              fyne.Window
 	Title               *widget.Label
@@ -29,9 +26,6 @@ type RenameUIComponents struct {
 	DirSelector         fyne.CanvasObject
 }
 
-// =======================
-// 线程安全封装
-// =======================
 func safeUI(f func()) {
 	if fyne.CurrentApp() == nil {
 		f()
@@ -40,9 +34,6 @@ func safeUI(f func()) {
 	fyne.Do(f) // Fyne 官方线程安全执行
 }
 
-// =======================
-// 初始化 UI
-// =======================
 func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	global.MainWindow.Hide()
 
@@ -90,9 +81,6 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	}, nil
 }
 
-// =======================
-// 按钮逻辑拆分
-// =======================
 func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Button {
 	_ = config
 
@@ -226,9 +214,6 @@ func setupBackButton(ui *RenameUIComponents) *widget.Button {
 	})
 }
 
-// =======================
-// 整合事件绑定
-// =======================
 func setupRenameUIEvents(ui *RenameUIComponents, config RenameUIConfig) (scanBtn, previewBtn, renameBtn, backBtn *widget.Button) {
 	scanBtn = setupScanButton(ui, config)
 	previewBtn = setupPreviewButton(ui, config)
@@ -236,7 +221,3 @@ func setupRenameUIEvents(ui *RenameUIComponents, config RenameUIConfig) (scanBtn
 	backBtn = setupBackButton(ui)
 	return
 }
-
-// =======================
-// 主入口 ShowRenameUI
-// =======================
