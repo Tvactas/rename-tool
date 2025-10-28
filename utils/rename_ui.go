@@ -11,10 +11,7 @@ import (
 	"rename-tool/common/dirpath"
 	"rename-tool/common/filestatus"
 	"rename-tool/common/pathgen"
-	"rename-tool/common/preview"
 	"rename-tool/common/progress"
-	"rename-tool/common/scan"
-	"rename-tool/common/theme"
 	"rename-tool/common/ui"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
@@ -37,214 +34,39 @@ type RenameUIConfig struct {
 	AdditionalItems []fyne.CanvasObject
 }
 
-// ShowRenameUI 显示重命名界面
+// ✅ 主入口函数，整合UI、事件与布局
 func ShowRenameUI(config RenameUIConfig) {
-	global.MyApp.Settings().SetTheme(&theme.OtherTheme{})
-	global.MainWindow.Hide()
-	window := global.MyApp.NewWindow(config.Title)
-	window.Resize(fyne.NewSize(600, 500))
-	window.SetFixedSize(false)
-	window.SetCloseIntercept(func() {
-		global.MyApp.Quit()
-	})
-
-	// 标题
-	title := widget.NewLabelWithStyle(config.Title, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-
-	// 目录选择
-	formatLabel := widget.NewLabel(tr("scan_format") + ": " + tr("scan_not_started"))
-	formatListContainer := container.NewGridWithColumns(4)
-	selectAllBtn := widget.NewButton(tr("select_all"), nil)
-	selectAllBtn.Hide()
-
-	// 存储格式复选框的映射
-	formatChecks := make(map[string]*widget.Check)
-
-	// 创建格式列表的滚动容器（初始化时就创建）
-	formatScroll := container.NewScroll(formatListContainer)
-	formatScroll.SetMinSize(fyne.NewSize(0, 200))
-	formatScroll.Resize(fyne.NewSize(0, 200))
-
-	var onDirChanged func()
-	onDirChanged = func() {
-		// 路径变更时清空格式相关内容
-		formatListContainer.Objects = nil
-		formatChecks = make(map[string]*widget.Check)
-		formatLabel.SetText(tr("scan_format") + ": " + tr("scan_not_started"))
-		selectAllBtn.Hide()
-		formatListContainer.Refresh()
-		formatScroll.Refresh()
-		window.Content().Refresh()
+	ui, err := initRenameUI(config)
+	if err != nil {
+		dialog.ShowError(err, global.MainWindow)
+		return
 	}
-	dirSelector := dirpath.CreateDirSelector(window, onDirChanged)
 
-	// 扫描按钮
-	scanBtn := widget.NewButton(tr("scan_format"), func() {
-		if global.SelectedDir == "" {
-			dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
-			return
-		}
+	scanBtn, previewBtn, renameBtn, backBtn := setupRenameUIEvents(ui, config)
 
-		formats, err := scan.ScanFormats(global.SelectedDir)
-		if err != nil {
-			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_failed"))
-			return
-		}
+	dirBox := container.NewHBox(ui.DirSelector, scanBtn)
+	formatBox := container.NewHBox(ui.FormatLabel, ui.SelectAllBtn)
 
-		if len(formats) == 0 {
-			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_no_files"))
-			return
-		}
-
-		formatLabel.SetText(fmt.Sprintf(tr("scan_format")+": "+tr("scan_found_formats"), len(formats)))
-
-		// 清空现有格式列表
-		formatListContainer.Objects = nil
-		formatChecks = make(map[string]*widget.Check)
-
-		// 为每个格式创建复选框
-		for _, format := range formats {
-			check := widget.NewCheck(format, nil)
-			check.SetChecked(true)
-			formatChecks[format] = check
-			formatListContainer.Add(check)
-		}
-
-		// 设置全选按钮功能
-		selectAllBtn.OnTapped = func() {
-			allChecked := true
-			for _, check := range formatChecks {
-				if !check.Checked {
-					allChecked = false
-					break
-				}
-			}
-
-			for _, check := range formatChecks {
-				check.SetChecked(!allChecked)
-			}
-		}
-		selectAllBtn.Show()
-		formatListContainer.Refresh()
-		formatScroll.Refresh()
-		window.Content().Refresh()
-
-	})
-
-	// 底部按钮
-	backBtn := widget.NewButton(tr("back"), func() {
-		window.Close()
-		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
-		global.MainWindow.Show()
-	})
-
-	var renameBtn *widget.Button
-	renameBtn = widget.NewButton(tr("rename"), func() {
-		// 获取选中的格式
-		var selectedFormats []string
-		for format, check := range formatChecks {
-			if check.Checked {
-				selectedFormats = append(selectedFormats, format)
-			}
-		}
-
-		if len(selectedFormats) == 0 {
-			dialog.ShowInformation(tr("error"), tr("please_select_format"), window)
-			return
-		}
-
-		// 创建重命名配置
-		renameConfig := config.ConfigBuilder()
-		renameConfig.Type = config.RenameType
-		renameConfig.SelectedDir = global.SelectedDir
-		renameConfig.Formats = selectedFormats
-
-		// 验证配置
-		if err := config.ValidateConfig(renameConfig); err != nil {
-			dialog.ShowError(err, window)
-			return
-		}
-
-		// 禁用重命名按钮
-		renameBtn.Disable()
-
-		// 执行重命名
-		performRename(window, renameConfig)
-
-		// 0.5秒后重新启用重命名按钮
-		go func() {
-			time.Sleep(500 * time.Millisecond)
-			fyne.Do(func() {
-				renameBtn.Enable()
-			})
-		}()
-	})
-
-	// 预览按钮
-	previewBtn := widget.NewButton(tr("preview"), func() {
-		// 获取选中的格式
-		var selectedFormats []string
-		for format, check := range formatChecks {
-			if check.Checked {
-				selectedFormats = append(selectedFormats, format)
-			}
-		}
-
-		if len(selectedFormats) == 0 {
-			dialog.ShowInformation(tr("error"), tr("please_select_format"), window)
-			return
-		}
-
-		// 创建重命名配置
-		renameConfig := config.ConfigBuilder()
-		renameConfig.Type = config.RenameType
-		renameConfig.SelectedDir = global.SelectedDir
-		renameConfig.Formats = selectedFormats
-
-		// 验证配置
-		if err := config.ValidateConfig(renameConfig); err != nil {
-			dialog.ShowError(err, window)
-			return
-		}
-
-		// 获取文件列表
-		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
-		if err != nil {
-			dialog.ShowError(err, window)
-			return
-		}
-
-		// 打开预览界面
-		preview.ShowPreviewWindow(window, files, renameConfig)
-	})
-
-	// 布局
-	dirBox := container.NewHBox(dirSelector, scanBtn)
-	formatBox := container.NewHBox(formatLabel, selectAllBtn)
-
-	// 创建主内容
 	mainContent := container.NewVBox(
-		title,
+		ui.Title,
 		widget.NewSeparator(),
 		dirBox,
 		widget.NewSeparator(),
 		formatBox,
-		formatScroll,
+		ui.FormatScroll,
 		widget.NewSeparator(),
 	)
 
-	// 添加额外组件
 	if len(config.AdditionalItems) > 0 {
 		mainContent.Add(container.NewVBox(config.AdditionalItems...))
 		mainContent.Add(widget.NewSeparator())
 	}
 
-	// 底部按钮
-	bottomButtons := container.NewHBox(layout.NewSpacer(), previewBtn, backBtn, renameBtn)
+	bottomButtons := container.NewHBox(layout.NewSpacer(), backBtn, previewBtn, renameBtn)
 	mainContent.Add(bottomButtons)
 
-	window.SetContent(mainContent)
-	window.Show()
+	ui.Window.SetContent(mainContent)
+	ui.Window.Show()
 }
 
 // tr 函数用于国际化
@@ -252,17 +74,12 @@ func tr(key string) string {
 	return i18n.Tr(key)
 }
 
-func buttonTr(key string) string {
-	return i18n.ButtonTr(key)
-}
-
 // performRename 执行重命名操作
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
-		dialog.ShowInformation(tr("error"), tr("please_select_dir"), window)
+		dialog.ShowInformation(dialogTr("error"), tr("please_select_dir"), window)
 		return
 	}
-
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
@@ -286,13 +103,13 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 
 			copyBtn := widget.NewButton(tr("copy"), func() {
 				window.Clipboard().SetContent(content)
-				dialog.ShowInformation(tr("success"), tr("copy_success"), window)
+				dialog.ShowInformation(dialogTr("success"), tr("copy_success"), window)
 			})
 
 			closeBtn := widget.NewButton(tr("close"), nil)
 
 			dialogContent := container.NewBorder(
-				widget.NewLabel(tr("error")+": "+tr("duplicate_names")),
+				widget.NewLabel(dialogTr("error")+": "+tr("duplicate_names")),
 				container.NewHBox(copyBtn, layout.NewSpacer(), closeBtn),
 				nil,
 				nil,
@@ -300,7 +117,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 			)
 
 			dialog := dialog.NewCustom(
-				tr("error"),
+				dialogTr("error"),
 				"",
 				dialogContent,
 				window,
@@ -443,7 +260,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		filestatus.ShowBusyFilesDialog(window, busyFiles)
 	} else {
 		if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 {
-			dialog.ShowInformation(i18n.Tr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
+			dialog.ShowInformation(dialogTr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
 		}
 	}
 }

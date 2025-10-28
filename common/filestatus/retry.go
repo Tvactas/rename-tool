@@ -24,7 +24,6 @@ func RenameFile(oldPath, newPath string) error {
 	if oldPath == newPath {
 		return nil
 	}
-
 	baseNewPath := newPath
 	counter := 1
 	ext := filepath.Ext(baseNewPath)
@@ -116,7 +115,7 @@ func ShowBusyFilesDialog(window fyne.Window, busyFiles []string) {
 
 	copyBtn := widget.NewButton(i18n.Tr("copy"), func() {
 		global.MyApp.Clipboard().SetContent(content)
-		dialog.ShowInformation(i18n.Tr("success"), i18n.Tr("copy_success"), window)
+		dialog.ShowInformation(dialogTr("success"), i18n.Tr("copy_success"), window)
 	})
 
 	retryBtn := widget.NewButton(i18n.Tr("retry"), nil)
@@ -149,7 +148,7 @@ func ShowBusyFilesDialog(window fyne.Window, busyFiles []string) {
 	retryBtn.OnTapped = func() {
 		retryMutex.Lock()
 		if time.Since(lastRetryTime) < 2*time.Second {
-			dialog.ShowInformation(i18n.Tr("warning"), i18n.Tr("retry_too_fast"), window)
+			dialog.ShowInformation(dialogTr("warning"), i18n.Tr("retry_too_fast"), window)
 			retryMutex.Unlock()
 			return
 		}

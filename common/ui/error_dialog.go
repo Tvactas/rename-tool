@@ -34,7 +34,7 @@ func ShowLengthErrorDialog(window fyne.Window, files []string) {
 	// 创建按钮
 	copyBtn := widget.NewButton(i18n.Tr("copy"), func() {
 		window.Clipboard().SetContent(content)
-		dialog.ShowInformation(i18n.Tr("success"), i18n.Tr("copy_success"), window)
+		dialog.ShowInformation(dialogTr("success"), i18n.Tr("copy_success"), window)
 	})
 
 	closeBtn := widget.NewButton(i18n.Tr("close"), nil)
@@ -49,7 +49,7 @@ func ShowLengthErrorDialog(window fyne.Window, files []string) {
 	)
 
 	dialog := dialog.NewCustom(
-		i18n.Tr("error"),
+		dialogTr("error"),
 		"",
 		dialogContent,
 		window,

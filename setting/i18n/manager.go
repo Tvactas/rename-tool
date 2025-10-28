@@ -60,19 +60,24 @@ func Tr(key string) string {
 	return Translations[manager.currentLang][key]
 }
 
-func LogTr(key string) string {
-	return log_translations[manager.currentLang][key]
+func makeTrGetter(translations map[string]map[string]string) func(string) string {
+	return func(key string) string {
+		if langMap, ok := translations[manager.currentLang]; ok {
+			if val, ok := langMap[key]; ok {
+				return val
+			}
+		}
+		return key
+	}
 }
 
-func ButtonTr(key string) string {
-	return button_translations[manager.currentLang][key]
-}
-func DialogTr(key string) string {
-	return dialog_translations[manager.currentLang][key]
-}
-func TextTr(key string) string {
-	return text_translations[manager.currentLang][key]
-}
+// 初始化全局函数
+var (
+	LogTr    = makeTrGetter(log_translations)
+	ButtonTr = makeTrGetter(button_translations)
+	DialogTr = makeTrGetter(dialog_translations)
+	TextTr   = makeTrGetter(text_translations)
+)
 
 // LangSelect 创建语言选择器组件
 func LangSelect() fyne.CanvasObject {

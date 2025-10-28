@@ -42,6 +42,6 @@ func UndoRename() {
 	if len(busyFiles) > 0 {
 		filestatus.ShowBusyFilesDialog(global.MainWindow, busyFiles)
 	} else {
-		dialog.ShowInformation(tr("success"), fmt.Sprintf(tr("undo_success"), successCount), global.MainWindow)
+		dialog.ShowInformation(dialogTr("success"), fmt.Sprintf(tr("undo_success"), successCount), global.MainWindow)
 	}
 }

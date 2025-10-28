@@ -51,5 +51,5 @@ func SaveLogs() {
 	}
 
 	message := fmt.Sprintf("%s %d %s %s", i18n.DialogTr("SuccessSaved"), len(global.Logs), i18n.DialogTr("files_count_with_path"), applog.GetLogPath())
-	ui.ShowWidePlainMessage(global.MainWindow, tr("success"), message)
+	ui.ShowWidePlainMessage(global.MainWindow, dialogTr("success"), message)
 }

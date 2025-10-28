@@ -122,25 +122,3 @@ func (m *MainTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 func (m *MainTheme) Size(name fyne.ThemeSizeName) float32 {
 	return theme.DefaultTheme().Size(name)
 }
-
-// OtherTheme implements the other theme
-type OtherTheme struct{}
-
-func (m *OtherTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameForeground {
-		return color.Black
-	}
-	return theme.DefaultTheme().Color(name, variant)
-}
-
-func (m *OtherTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return theme.DefaultTheme().Font(style)
-}
-
-func (m *OtherTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
-	return theme.DefaultTheme().Icon(name)
-}
-
-func (m *OtherTheme) Size(name fyne.ThemeSizeName) float32 {
-	return theme.DefaultTheme().Size(name)
-}
