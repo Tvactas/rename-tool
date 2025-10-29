@@ -2,13 +2,10 @@ package filestatus
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"rename-tool/setting/config"
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 
@@ -18,41 +15,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
-
-// RenameFile attempts to rename a file with retry and name conflict resolution.
-func RenameFile(oldPath, newPath string) error {
-	if oldPath == newPath {
-		return nil
-	}
-	baseNewPath := newPath
-	counter := 1
-	ext := filepath.Ext(baseNewPath)
-	name := baseNewPath[:len(baseNewPath)-len(ext)]
-	for {
-		if _, err := os.Stat(newPath); os.IsNotExist(err) {
-			break
-		}
-		newPath = fmt.Sprintf("%s_%d%s", name, counter, ext)
-		counter++
-	}
-
-	var err error
-	delay := config.RetryDelay
-	for i := 0; i < config.MaxRetryAttempts; i++ {
-		err = os.Rename(oldPath, newPath)
-		if err == nil {
-			return nil
-		}
-		if !IsFileBusyError(err) {
-			break
-		}
-		time.Sleep(delay)
-		delay *= 2
-	}
-
-	return fmt.Errorf("%s: %s → %s", i18n.Tr("rename_failed_format"), oldPath, newPath)
-
-}
 
 // RetryRenameForFile attempts to rename the file to a temp path and revert to check file busy.
 func RetryRenameForFile(filePath string) bool {

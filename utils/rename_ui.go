@@ -69,21 +69,18 @@ func ShowRenameUI(config RenameUIConfig) {
 	ui.Window.Show()
 }
 
-// tr 函数用于国际化
-func tr(key string) string {
-	return i18n.Tr(key)
-}
-
 // performRename 执行重命名操作
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
-		dialog.ShowInformation(dialogTr("error"), tr("please_select_dir"), window)
+		errorDiaLog(tr("please_select_dir"))
+
 		return
 	}
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
-		dialog.ShowError(fmt.Errorf("%s", i18n.Tr("error_getting_files")), window)
+		errorDiaLog(tr("error_getting_files"))
+
 		return
 	}
 

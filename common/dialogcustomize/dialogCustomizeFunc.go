@@ -76,7 +76,3 @@ func showBaseDialog(title, message string, window fyne.Window, bg color.Color, w
 	contentContainer := createContentContainer(content, width, bg)
 	return dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
 }
-
-// =====================================
-// 对外统一接口
-// =====================================

@@ -15,7 +15,7 @@ import (
 
 // createPreviewWindow 创建预览窗口
 func createPreviewWindow() fyne.Window {
-	window := global.MyApp.NewWindow(tr("preview"))
+	window := global.MyApp.NewWindow(buttonTr("preview"))
 	window.Resize(fyne.NewSize(800, 600))
 	window.SetFixedSize(false)
 	window.SetCloseIntercept(func() {
@@ -81,14 +81,14 @@ func buildWindowContent(previewList *widget.List, fileCount int, window fyne.Win
 
 // createTopBar 创建顶部栏
 func createTopBar(fileCount int) *fyne.Container {
-	title := widget.NewLabelWithStyle(tr("preview"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	title := widget.NewLabelWithStyle(buttonTr("preview"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	countLabel := widget.NewLabel(fmt.Sprintf(tr("total_files")+": %d", fileCount))
 	return container.NewHBox(title, layout.NewSpacer(), countLabel)
 }
 
 // createBottomBar 创建底部栏
 func createBottomBar(window fyne.Window) *fyne.Container {
-	closeBtn := widget.NewButton(tr("close"), func() {
+	closeBtn := widget.NewButton(dialogTr("confirm"), func() {
 		window.Close()
 	})
 	return container.NewHBox(layout.NewSpacer(), closeBtn)
