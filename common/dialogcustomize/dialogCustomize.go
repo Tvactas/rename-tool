@@ -6,33 +6,26 @@ import (
 	"fyne.io/fyne/v2/dialog"
 )
 
-// ShowCustomDialog 显示自定义对话框（无图标）
-func ShowCustomDialog(title, message string, window fyne.Window) {
-	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, 400)
-
-	customDialog := dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
-	customDialog.Show()
+// 普通消息框
+func ShowMessageDialog(kind, title, message string, window fyne.Window) {
+	bg := getBgColor(kind)
+	d := showBaseDialog(title, message, window, bg, 400)
+	d.Show()
 }
 
-// ShowCustomDialogWithCallback 显示自定义对话框并带回调
-func ShowCustomDialogWithCallback(title, message string, window fyne.Window, callback func()) {
-	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, 400)
-
-	customDialog := dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
-	customDialog.SetOnClosed(func() {
-		if callback != nil {
-			callback()
-		}
-	})
-	customDialog.Show()
+// 带回调消息框
+func ShowMessageDialogWithCallback(kind, title, message string, window fyne.Window, callback func()) {
+	bg := getBgColor(kind)
+	d := showBaseDialog(title, message, window, bg, 400)
+	d.SetOnClosed(callback)
+	d.Show()
 }
 
-// ShowCustomConfirm 显示确认对话框（无图标）
-func ShowCustomConfirm(title, message string, window fyne.Window, onConfirm func(), onCancel func()) {
+// 确认框（带确认/取消）
+func ShowMessageConfirm(kind, title, message string, window fyne.Window, onConfirm, onCancel func()) {
+	bg := getBgColor(kind)
 	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, 400)
+	contentContainer := createContentContainer(content, 400, bg)
 
 	customDialog := dialog.NewCustomConfirm(
 		title,
@@ -51,25 +44,28 @@ func ShowCustomConfirm(title, message string, window fyne.Window, onConfirm func
 	customDialog.Show()
 }
 
-// ShowCustomDialogMultiLine 显示多行内容的对话框
-func ShowCustomDialogMultiLine(title string, messages []string, window fyne.Window) {
+// 多行内容框
+func ShowMessageDialogMultiLine(kind, title string, messages []string, window fyne.Window) {
+	bg := getBgColor(kind)
+
 	labels := make([]fyne.CanvasObject, len(messages))
 	for i, msg := range messages {
 		labels[i] = createCenteredLabel(msg)
 	}
 
-	content := append([]fyne.CanvasObject{createSpacer(400)}, labels...)
-	contentContainer := container.NewVBox(content...)
+	content := container.NewVBox(labels...)
+	contentContainer := createContentContainer(content, 400, bg)
 
-	customDialog := dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
-	customDialog.Show()
+	dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window).Show()
 }
 
-// ShowCustomDialogWithSize 显示自定义尺寸的对话框
-func ShowCustomDialogWithSize(title, message string, window fyne.Window, width, height float32) {
+// 可自定义尺寸
+func ShowMessageDialogWithSize(kind, title, message string, window fyne.Window, width, height float32) {
+	bg := getBgColor(kind)
 	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, width)
+	contentContainer := createContentContainer(content, width, bg)
 
 	customDialog := dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
+	customDialog.Resize(fyne.NewSize(width, height))
 	customDialog.Show()
 }
