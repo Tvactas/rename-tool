@@ -49,15 +49,15 @@ func ShowMainMenu() {
 	}{
 		{buttonTr("SequenceRename"), func() { utils.ShowBatchRenameNormal() }},
 		{buttonTr("ExtensionModify"), func() { utils.ShowChangeExtension() }},
-		{tr("upper"), func() { utils.ShowRenameToCase("upper") }},
-		{tr("lower"), func() { utils.ShowRenameToCase("lower") }},
-		{tr("titlecase"), func() { utils.ShowRenameToCase("title") }},
+		{buttonTr("toUpper"), func() { utils.ShowRenameToCase("upper") }},
+		{buttonTr("toLower"), func() { utils.ShowRenameToCase("lower") }},
+		{buttonTr("titlecase"), func() { utils.ShowRenameToCase("title") }},
 		{tr("camel"), func() { utils.ShowRenameToCase("camel") }},
 		{tr("insert_char"), func() { utils.ShowInsertCharRename() }},
 		{tr("delete_char"), func() { utils.ShowDeleteCharRename() }},
 		{tr("regex_replace"), func() { utils.ShowRegexReplace() }},
 		{tr("undo"), utils.UndoRename},
-		{tr("log"), utils.SaveLogs},
+		{buttonTr("logSaved"), utils.SaveLogs},
 		{tr("exit"), func() { global.MyApp.Quit() }},
 	}
 

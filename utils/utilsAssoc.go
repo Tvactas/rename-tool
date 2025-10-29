@@ -36,3 +36,12 @@ func warningDiaLog(message string) {
 		global.MainWindow, // 直接用全局变量
 	)
 }
+
+func errorDiaLogUI(message string, ui *RenameUIComponents) {
+	dialogcustomize.ShowMessageDialog(
+		"error",
+		dialogTr("error"),
+		message,
+		ui.Window, // 直接用全局变量
+	)
+}

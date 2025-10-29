@@ -72,7 +72,7 @@ func ShowRenameUI(config RenameUIConfig) {
 // performRename 执行重命名操作
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
-		errorDiaLog(tr("please_select_dir"))
+		errorDiaLog(dialogTr("selectDir"))
 
 		return
 	}
