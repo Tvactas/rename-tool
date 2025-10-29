@@ -14,7 +14,8 @@ import (
 // UndoRename handles the undo operation for file renaming
 func UndoRename() {
 	if len(global.Logs) == 0 {
-		dialog.ShowInformation(dialogTr("warning"), tr("no_undo_operations"), global.MainWindow)
+		warningDiaLog(global.MainWindow, tr("no_undo_operations"))
+		// dialog.ShowInformation(dialogTr("warning"), tr("no_undo_operations"), global.MainWindow)
 		return
 	}
 

@@ -72,14 +72,14 @@ func ShowRenameUI(config RenameUIConfig) {
 // performRename 执行重命名操作
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
-		errorDiaLog(dialogTr("selectDir"))
+		errorDiaLog(window, dialogTr("selectDir"))
 
 		return
 	}
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
-		errorDiaLog(tr("error_getting_files"))
+		errorDiaLog(window, tr("error_getting_files"))
 
 		return
 	}

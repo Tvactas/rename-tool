@@ -85,9 +85,8 @@ func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Butt
 	_ = config
 
 	return widget.NewButton(tr("scan_format"), func() {
-		if global.SelectedDir == "" {
-			errorDiaLogUI(dialogTr("selectDir"), ui)
-
+		if global.SelectedDir != "" {
+			errorDiaLog(ui.Window, dialogTr("selectDir"))
 			return
 		}
 
@@ -143,7 +142,7 @@ func setupPreviewButton(ui *RenameUIComponents, config RenameUIConfig) *widget.B
 			}
 		}
 		if len(selectedFormats) == 0 {
-			errorDiaLogUI(dialogTr("selectFormat"), ui)
+			errorDiaLog(ui.Window, dialogTr("selectFormat"))
 			return
 		}
 
@@ -177,7 +176,7 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 			}
 		}
 		if len(selectedFormats) == 0 {
-			errorDiaLogUI(dialogTr("selectFormat"), ui)
+			errorDiaLog(ui.Window, dialogTr("selectFormat"))
 			return
 		}
 

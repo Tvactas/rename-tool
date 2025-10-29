@@ -56,7 +56,7 @@ func ShowMainMenu() {
 		{tr("insert_char"), func() { utils.ShowInsertCharRename() }},
 		{tr("delete_char"), func() { utils.ShowDeleteCharRename() }},
 		{tr("regex_replace"), func() { utils.ShowRegexReplace() }},
-		{tr("undo"), utils.UndoRename},
+		{buttonTr("undoRename"), utils.UndoRename},
 		{buttonTr("logSaved"), utils.SaveLogs},
 		{tr("exit"), func() { global.MyApp.Quit() }},
 	}

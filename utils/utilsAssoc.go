@@ -2,8 +2,9 @@ package utils
 
 import (
 	"rename-tool/common/dialogcustomize"
-	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
+
+	"fyne.io/fyne/v2"
 )
 
 // tr 函数用于国际化
@@ -19,29 +20,21 @@ func buttonTr(key string) string {
 	return i18n.ButtonTr(key)
 }
 
-func errorDiaLog(message string) {
-	dialogcustomize.ShowMessageDialog(
-		"error",
-		dialogTr("error"),
-		message,
-		global.MainWindow, // 直接用全局变量
-	)
-}
-
-func warningDiaLog(message string) {
+func warningDiaLog(window fyne.Window, message string) {
 	dialogcustomize.ShowMessageDialog(
 		"warning",
 		dialogTr("warning"),
 		message,
-		global.MainWindow, // 直接用全局变量
+		window, // 直接用全局变量
 	)
 }
 
-func errorDiaLogUI(message string, ui *RenameUIComponents) {
+// errorDiaLog 将对话框绑定到指定窗口，避免总是落到 global.MainWindow 上
+func errorDiaLog(window fyne.Window, message string) {
 	dialogcustomize.ShowMessageDialog(
 		"error",
 		dialogTr("error"),
 		message,
-		ui.Window, // 直接用全局变量
+		window,
 	)
 }

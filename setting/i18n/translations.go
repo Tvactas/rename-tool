@@ -76,6 +76,7 @@ var button_translations = map[string]map[string]string{
 		"toUpper":             "命名转大写",
 		"toLower":             "命名转小写",
 		"titlecase":           "首字母大写",
+		"undoRename":          "撤销重命名",
 	},
 	"en": {
 		"AppName":             "File Rename Tool",
@@ -90,6 +91,7 @@ var button_translations = map[string]map[string]string{
 		"toUpper":             "Uppercase",
 		"toLower":             "Lowercase",
 		"titlecase":           "Capitalize first letter",
+		"undoRename":          "Undo rename",
 	},
 	"ja": {
 		"AppName":             "ファイル名変更ツール",
@@ -104,6 +106,7 @@ var button_translations = map[string]map[string]string{
 		"toUpper":             "大文字にする",
 		"toLower":             "小文字にする",
 		"titlecase":           "最初の文字を大文字にする",
+		"undoRename":          "リネームを元に戻す",
 	},
 }
 
@@ -134,7 +137,6 @@ var Translations = map[string]map[string]string{
 		"back":                              "返回",
 		"copy":                              "复制",
 		"exit":                              "退出",
-		"undo":                              "撤销重命名",
 		"camel":                             "驼峰格式",
 		"rename":                            "重命名",
 		"file_busy":                         "❌ 文件被占用",
@@ -222,7 +224,6 @@ var Translations = map[string]map[string]string{
 		"back":                              "Back",
 		"copy":                              "Copy",
 		"exit":                              "Exit",
-		"undo":                              "Undo Rename",
 		"camel":                             "Camel Case",
 		"rename":                            "Rename",
 		"file_busy":                         "❌ File is busy",
@@ -310,7 +311,6 @@ var Translations = map[string]map[string]string{
 		"back":                              "戻る",
 		"copy":                              "コピー",
 		"exit":                              "終了",
-		"undo":                              "リネームを元に戻す",
 		"camel":                             "キャメルケース",
 		"rename":                            "リネーム",
 		"file_busy":                         "❌ ファイルが使用中",
