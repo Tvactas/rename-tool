@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"rename-tool/common/dialogcustomize"
 	"rename-tool/common/dirpath"
 	"rename-tool/common/filestatus"
 	"rename-tool/common/pathgen"
@@ -253,9 +254,10 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	}
 
-	// 显示文件占用错误
+	// 直接用弹窗列出未完成重命名的文件
 	if len(busyFiles) > 0 {
-		filestatus.ShowBusyFilesDialog(window, busyFiles)
+		dialogcustomize.ShowMultiLineCopyDialog("error", tr("rename_failed_files"), busyFiles, window)
+		return
 	} else {
 		if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 {
 			dialog.ShowInformation(dialogTr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)

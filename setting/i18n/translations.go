@@ -39,6 +39,7 @@ var dialog_translations = map[string]map[string]string{
 		"noLogSaved":     "没有更改记录,日志为空",
 		"selectFormat":   "请选择要修改的扩展名",
 		"selectDirFirst": "请选择目录",
+		"copy":           "以制",
 	},
 	"en": {
 		"success":        "✅ SUCCESS",
@@ -49,6 +50,7 @@ var dialog_translations = map[string]map[string]string{
 		"noLogSaved":     "No change record, log is empty",
 		"selectFormat":   "Please select extension to modify",
 		"selectDirFirst": "Please select a directory",
+		"copy":           "Copy",
 	},
 	"ja": {
 		"success":        "✅ 成功",
@@ -59,6 +61,7 @@ var dialog_translations = map[string]map[string]string{
 		"noLogSaved":     "変更記録がありません。ログは空です",
 		"selectFormat":   "変更する拡張子を選択してください",
 		"selectDirFirst": "ディレクトリを選択してください",
+		"copy":           "コピー",
 	},
 }
 
@@ -133,9 +136,9 @@ var button_translations = map[string]map[string]string{
 		"sequenceRename":      "シーケンス名の変更",
 		"extensionModify":     "拡張子の変更",
 		"logSaved":            "ログ保存中",
-		"toUpper":             "名前を大文字に変換",
-		"toLower":             "名前を小文字に変換",
-		"titlecase":           "先頭文字を大文字にする",
+		"toUpper":             "大文字変換",
+		"toLower":             "小文字変換",
+		"titlecase":           "先頭文字大文字変換",
 		"undoRename":          "名前変更を元に戻す",
 		"deleteLetter":        "文字を削除",
 		"insertLetter":        "文字を挿入",
@@ -176,7 +179,6 @@ var text_translations = map[string]map[string]string{
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
-		"copy":                              "复制",
 		"file_busy":                         "❌ 文件被占用",
 		"use_regex":                         "使用正则表达式",
 		"processing":                        "处理中",
@@ -243,7 +245,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"en": {
-		"copy":                              "Copy",
 		"file_busy":                         "❌ File is busy",
 		"use_regex":                         "Use Regex",
 		"processing":                        "Processing",
@@ -310,7 +311,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"ja": {
-		"copy":                              "コピー",
 		"file_busy":                         "❌ ファイルが使用中",
 		"use_regex":                         "正規表現を使用",
 		"processing":                        "処理中",

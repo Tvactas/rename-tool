@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"rename-tool/common/filestatus"
+	"rename-tool/common/dialogcustomize"
 	"rename-tool/setting/global"
 
 	"fyne.io/fyne/v2/dialog"
@@ -15,7 +15,6 @@ import (
 func UndoRename() {
 	if len(global.Logs) == 0 {
 		warningDiaLog(global.MainWindow, tr("no_undo_operations"))
-		// dialog.ShowInformation(dialogTr("warning"), tr("no_undo_operations"), global.MainWindow)
 		return
 	}
 
@@ -34,14 +33,14 @@ func UndoRename() {
 					New:      log.New,
 					Time:     time.Now().Format("2006-01-02 15:04:05"),
 				})
-			} else if filestatus.IsFileBusyError(err) {
+			} else {
 				busyFiles = append(busyFiles, log.New)
 			}
 		}
 	}
 
 	if len(busyFiles) > 0 {
-		filestatus.ShowBusyFilesDialog(global.MainWindow, busyFiles)
+		dialogcustomize.ShowMultiLineCopyDialog("error", tr("undo_failed_files"), busyFiles, global.MainWindow)
 	} else {
 		dialog.ShowInformation(dialogTr("success"), fmt.Sprintf(tr("undo_success"), successCount), global.MainWindow)
 	}

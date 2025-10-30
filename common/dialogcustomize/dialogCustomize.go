@@ -1,9 +1,13 @@
 package dialogcustomize
 
 import (
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/layout"
 )
 
 // 普通消息框
@@ -13,59 +17,28 @@ func ShowMessageDialog(kind, title, message string, window fyne.Window) {
 	d.Show()
 }
 
-// 带回调消息框
-func ShowMessageDialogWithCallback(kind, title, message string, window fyne.Window, callback func()) {
+
+// 多行+复制按钮专用弹窗
+func ShowMultiLineCopyDialog(kind, title string, paths []string, window fyne.Window) {
 	bg := getBgColor(kind)
-	d := showBaseDialog(title, message, window, bg, 400)
-	d.SetOnClosed(callback)
-	d.Show()
-}
+	content := strings.Join(paths, "\n")
 
-// 确认框（带确认/取消）
-func ShowMessageConfirm(kind, title, message string, window fyne.Window, onConfirm, onCancel func()) {
-	bg := getBgColor(kind)
-	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, 400, bg)
+	textArea := widget.NewMultiLineEntry()
+	textArea.SetText(content)
+	textArea.Wrapping = fyne.TextWrapWord
+	textArea.Disable()
+	textArea.SetMinRowsVisible(6)
 
-	customDialog := dialog.NewCustomConfirm(
-		title,
-		dialogTr("confirm"),
-		"Cancel",
-		contentContainer,
-		func(confirmed bool) {
-			if confirmed && onConfirm != nil {
-				onConfirm()
-			} else if !confirmed && onCancel != nil {
-				onCancel()
-			}
-		},
-		window,
-	)
-	customDialog.Show()
-}
+	contentContainer := createContentContainer(textArea, 400, bg)
 
-// 多行内容框
-func ShowMessageDialogMultiLine(kind, title string, messages []string, window fyne.Window) {
-	bg := getBgColor(kind)
+	copyBtn := widget.NewButton(dialogTr("copy"), func() {
+		window.Clipboard().SetContent(content)
+	})
+	closeBtn := widget.NewButton(dialogTr("confirm"), nil)
+	btns := container.NewHBox(layout.NewSpacer(), copyBtn, closeBtn, layout.NewSpacer())
 
-	labels := make([]fyne.CanvasObject, len(messages))
-	for i, msg := range messages {
-		labels[i] = createCenteredLabel(msg)
-	}
-
-	content := container.NewVBox(labels...)
-	contentContainer := createContentContainer(content, 400, bg)
-
-	dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window).Show()
-}
-
-// 可自定义尺寸
-func ShowMessageDialogWithSize(kind, title, message string, window fyne.Window, width, height float32) {
-	bg := getBgColor(kind)
-	content := createCenteredLabel(message)
-	contentContainer := createContentContainer(content, width, bg)
-
-	customDialog := dialog.NewCustom(title, dialogTr("confirm"), contentContainer, window)
-	customDialog.Resize(fyne.NewSize(width, height))
-	customDialog.Show()
+	finalContent := container.NewVBox(contentContainer, btns)
+	dialogErr := dialog.NewCustomWithoutButtons(title, finalContent, window)
+	closeBtn.OnTapped = dialogErr.Hide
+	dialogErr.Show()
 }
