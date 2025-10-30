@@ -253,6 +253,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		ui.ShowLengthErrorDialog(window, lengthErrorFiles)
 		return
 	}
+	dialogcustomize.ShowMultiLineCopyDialog("error", tr("rename_failed_files"), busyFiles, window)
 
 	// 直接用弹窗列出未完成重命名的文件
 	if len(busyFiles) > 0 {

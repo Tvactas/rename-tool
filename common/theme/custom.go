@@ -15,6 +15,11 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
+//go:embed deng.ttf
+var dengTTF []byte
+
+var dengResource = fyne.NewStaticResource("Deng", dengTTF)
+
 // 路径常量
 const (
 	imagePath = "src/img/"
@@ -112,7 +117,7 @@ func (m *MainTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) c
 }
 
 func (m *MainTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return theme.DefaultTheme().Font(style)
+	return dengResource
 }
 
 func (m *MainTheme) Icon(name fyne.ThemeIconName) fyne.Resource {

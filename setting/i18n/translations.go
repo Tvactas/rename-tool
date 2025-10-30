@@ -39,7 +39,7 @@ var dialog_translations = map[string]map[string]string{
 		"noLogSaved":     "没有更改记录,日志为空",
 		"selectFormat":   "请选择要修改的扩展名",
 		"selectDirFirst": "请选择目录",
-		"copy":           "以制",
+		"copy":           "复制",
 	},
 	"en": {
 		"success":        "✅ SUCCESS",
