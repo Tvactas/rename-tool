@@ -25,11 +25,11 @@ func warningDiaLog(window fyne.Window, message string) {
 		"warning",
 		dialogTr("warning"),
 		message,
-		window, // 直接用全局变量
+		window,
 	)
 }
 
-// errorDiaLog 将对话框绑定到指定窗口，避免总是落到 global.MainWindow 上
+// Show an error dialog bound to the specified window, to avoid always falling to global.MainWindow
 func errorDiaLog(window fyne.Window, message string) {
 	dialogcustomize.ShowMessageDialog(
 		"error",

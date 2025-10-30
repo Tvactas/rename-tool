@@ -47,7 +47,7 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	title := widget.NewLabelWithStyle(config.Title, fyne.TextAlignCenter, fyne.TextStyle{Bold: false})
 	formatLabel := widget.NewLabel(buttonTr("scanFormat") + ": " + buttonTr("scanNotStart"))
 	formatListContainer := container.NewGridWithColumns(4)
-	selectAllBtn := widget.NewButton(tr("select_all"), nil)
+	selectAllBtn := widget.NewButton(buttonTr("selectAll"), nil)
 	selectAllBtn.Hide()
 	formatChecks := make(map[string]*widget.Check)
 
@@ -81,11 +81,6 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	}, nil
 }
 
-//
-// ===== 提取扫描逻辑部分 =====
-//
-
-// 纯扫描逻辑（与 UI 无关）
 func doScanFormats(dir string) ([]string, error) {
 	if dir == "" {
 		return nil, fmt.Errorf("no directory selected")
@@ -97,12 +92,12 @@ func doScanFormats(dir string) ([]string, error) {
 func updateFormatListUI(ui *RenameUIComponents, formats []string) {
 	safeUI(func() {
 		if len(formats) == 0 {
-			ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scan_no_files"))
+			ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + buttonTr("scanZeroFile"))
 			ui.SelectAllBtn.Hide()
 			return
 		}
 
-		ui.FormatLabel.SetText(fmt.Sprintf(buttonTr("scanFormat")+": "+tr("scan_found_formats"), len(formats)))
+		ui.FormatLabel.SetText(fmt.Sprintf(buttonTr("scanFormat")+": "+buttonTr("scanFoundNumber"), len(formats)))
 		ui.FormatListContainer.Objects = nil
 		ui.FormatChecks = make(map[string]*widget.Check)
 
@@ -143,7 +138,7 @@ func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Butt
 		formats, err := doScanFormats(global.SelectedDir)
 		if err != nil {
 			safeUI(func() {
-				ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scan_failed"))
+				ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scanFailed"))
 			})
 			return
 		}
