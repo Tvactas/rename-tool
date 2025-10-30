@@ -15,18 +15,10 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-//go:embed deng.ttf
-var dengTTF []byte
+//go:embed deng.ttf cat.png
+var assetFS embed.FS
 
-var dengResource = fyne.NewStaticResource("Deng", dengTTF)
-
-// 路径常量
-const (
-	imagePath = "src/img/"
-)
-
-// Resource file system
-var fontFS embed.FS
+var dengResource fyne.Resource
 
 // Resource cache with mutex protection
 var (
@@ -34,18 +26,18 @@ var (
 	cacheMu    sync.RWMutex
 )
 
-// SetFontFS sets the embedded file system
-func SetFontFS(fs embed.FS) {
-	fontFS = fs
-}
-
 // Init initializes the resource loader and preloads fonts and images
 func Init() {
-
+	// 加载字体
+	if data, err := assetFS.ReadFile("deng.ttf"); err == nil {
+		dengResource = fyne.NewStaticResource("Deng", data)
+	} else {
+		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("loadThemeError"), "deng.ttf", err)
+	}
 	// 预加载图片
 	images := []string{"cat.png"}
 	for _, img := range images {
-		if data, err := fontFS.ReadFile(imagePath + img); err == nil {
+		if data, err := assetFS.ReadFile(img); err == nil {
 			cacheMu.Lock()
 			imageCache[img] = fyne.NewStaticResource(img, data)
 			cacheMu.Unlock()
@@ -66,7 +58,7 @@ func LoadImage(name string) fyne.Resource {
 	cacheMu.RUnlock()
 
 	// 从文件系统加载
-	data, err := fontFS.ReadFile(imagePath + name)
+	data, err := assetFS.ReadFile(name)
 	if err != nil {
 		applog.Logger.Printf("[THEME ERROR]  %s:%s, %v ", i18n.LogTr("loadThemeError"), name, err)
 		return nil
@@ -83,7 +75,7 @@ func LoadImage(name string) fyne.Resource {
 
 // ReadDir reads the directory named by dirname and returns a list of directory entries
 func ReadDir(dirname string) ([]fs.DirEntry, error) {
-	return fontFS.ReadDir(dirname)
+	return assetFS.ReadDir(dirname)
 }
 
 // SetBackground sets the background with gradient colors

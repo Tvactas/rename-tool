@@ -2,7 +2,6 @@ package main
 
 //power by Tvacats
 import (
-	"embed"
 	"rename-tool/common/appinit"
 	"rename-tool/common/applog"
 	"rename-tool/common/menu"
@@ -10,9 +9,6 @@ import (
 	"rename-tool/setting/global"
 	"rename-tool/setting/i18n"
 )
-
-//go:embed  src/img/*
-var resourceFS embed.FS
 
 func main() {
 
@@ -33,8 +29,7 @@ func init() {
 	applog.InitLogger("tvacats_rename.log")
 	applog.Logger.Printf("[IMPORTANT] Email me with tvacats@gmail.com")
 	// Initialize resource loader
-	theme.SetFontFS(resourceFS) // Set font file system
-	theme.Init()                // Initialize resource loader
+	theme.Init() // Initialize resource loader
 
 	// Set language change callback
 	i18n.GetManager().SetOnLangChange(func() {
