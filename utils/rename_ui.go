@@ -102,7 +102,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 
 			copyBtn := widget.NewButton(tr("copy"), func() {
 				window.Clipboard().SetContent(content)
-				dialog.ShowInformation(dialogTr("success"), tr("copy_success"), window)
+				dialog.ShowInformation(dialogTr("success"), tr("copySuccess"), window)
 			})
 
 			closeBtn := widget.NewButton(tr("close"), nil)

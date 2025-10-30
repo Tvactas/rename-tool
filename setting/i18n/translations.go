@@ -40,6 +40,7 @@ var dialog_translations = map[string]map[string]string{
 		"selectFormat":   "请选择要修改的扩展名",
 		"selectDirFirst": "请选择目录",
 		"copy":           "复制",
+		"copySuccess":    "复制成功",
 	},
 	"en": {
 		"success":        "✅ SUCCESS",
@@ -51,6 +52,7 @@ var dialog_translations = map[string]map[string]string{
 		"selectFormat":   "Please select extension to modify",
 		"selectDirFirst": "Please select a directory",
 		"copy":           "Copy",
+		"copySuccess":    "Copied successfully",
 	},
 	"ja": {
 		"success":        "✅ 成功",
@@ -62,6 +64,7 @@ var dialog_translations = map[string]map[string]string{
 		"selectFormat":   "変更する拡張子を選択してください",
 		"selectDirFirst": "ディレクトリを選択してください",
 		"copy":           "コピー",
+		"copySuccess":    "コピーしました",
 	},
 }
 
@@ -179,14 +182,9 @@ var text_translations = map[string]map[string]string{
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
-		"file_busy":                         "❌ 文件被占用",
 		"use_regex":                         "使用正则表达式",
-		"processing":                        "处理中",
-		"example_ext":                       "示例: .jpg",
-		"files_count":                       "%d 个文件",
 		"insert_text":                       "插入文本",
 		"suffix_text":                       "后缀文本",
-		"copy_success":                      "✅ 复制成功",
 		"invalid_path":                      "❌ 无效的路径",
 		"replace_text":                      "替换文本",
 		"retry_result":                      "重试结果",
@@ -245,14 +243,9 @@ var Translations = map[string]map[string]string{
 	},
 
 	"en": {
-		"file_busy":                         "❌ File is busy",
 		"use_regex":                         "Use Regex",
-		"processing":                        "Processing",
-		"example_ext":                       "Example: .jpg",
-		"files_count":                       "%d files",
 		"insert_text":                       "Insert Text",
 		"suffix_text":                       "Suffix Text",
-		"copy_success":                      "✅ Copied successfully",
 		"invalid_path":                      "❌ Invalid path",
 		"replace_text":                      "Replace Text",
 		"retry_result":                      "Retry Result",
@@ -311,14 +304,9 @@ var Translations = map[string]map[string]string{
 	},
 
 	"ja": {
-		"file_busy":                         "❌ ファイルが使用中",
 		"use_regex":                         "正規表現を使用",
-		"processing":                        "処理中",
-		"example_ext":                       "例: .jpg",
-		"files_count":                       "%d ファイル",
 		"insert_text":                       "挿入テキスト",
 		"suffix_text":                       "サフィックステキスト",
-		"copy_success":                      "✅ コピーしました",
 		"invalid_path":                      "❌ 無効なパス",
 		"replace_text":                      "置換テキスト",
 		"retry_result":                      "リトライ結果",
