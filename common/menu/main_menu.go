@@ -47,18 +47,18 @@ func ShowMainMenu() {
 		text   string
 		action func()
 	}{
-		{buttonTr("SequenceRename"), func() { utils.ShowBatchRenameNormal() }},
-		{buttonTr("ExtensionModify"), func() { utils.ShowChangeExtension() }},
+		{buttonTr("sequenceRename"), func() { utils.ShowBatchRenameNormal() }},
+		{buttonTr("extensionModify"), func() { utils.ShowChangeExtension() }},
 		{buttonTr("toUpper"), func() { utils.ShowRenameToCase("upper") }},
 		{buttonTr("toLower"), func() { utils.ShowRenameToCase("lower") }},
 		{buttonTr("titlecase"), func() { utils.ShowRenameToCase("title") }},
 		{tr("camel"), func() { utils.ShowRenameToCase("camel") }},
-		{tr("insert_char"), func() { utils.ShowInsertCharRename() }},
-		{tr("delete_char"), func() { utils.ShowDeleteCharRename() }},
-		{tr("regex_replace"), func() { utils.ShowRegexReplace() }},
+		{buttonTr("insertLetter"), func() { utils.ShowInsertCharRename() }},
+		{buttonTr("deleteLetter"), func() { utils.ShowDeleteCharRename() }},
+		{buttonTr("regexReplace"), func() { utils.ShowRegexReplace() }},
 		{buttonTr("undoRename"), utils.UndoRename},
 		{buttonTr("logSaved"), utils.SaveLogs},
-		{tr("exit"), func() { global.MyApp.Quit() }},
+		{buttonTr("exit"), func() { global.MyApp.Quit() }},
 	}
 
 	// Create button grid
@@ -85,7 +85,7 @@ func ShowMainMenu() {
 		layout.NewSpacer(),
 		adminStatus,
 		layout.NewSpacer(),
-		widget.NewLabel(i18n.ButtonTr("AppName")),
+		widget.NewLabel(buttonTr("AppName")),
 	)
 
 	content := container.NewVBox(
@@ -104,8 +104,8 @@ func tr(key string) string {
 
 func UpdateAdminStatusLabel(label *widget.Label) {
 	if admin.IsAdmin() {
-		label.SetText(i18n.ButtonTr("UserPermissionsAD"))
+		label.SetText(i18n.ButtonTr("userPermissionsAD"))
 	} else {
-		label.SetText(i18n.ButtonTr("UserPermissionsUser"))
+		label.SetText(i18n.ButtonTr("userPermissionsUser"))
 	}
 }

@@ -1,6 +1,10 @@
 package dirpath
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"rename-tool/common/filestatus"
 	"strings"
 )
 
@@ -41,4 +45,26 @@ func mapExt(formats []string) map[string]bool {
 		m[ext] = true
 	}
 	return m
+}
+
+// walkDirFiltered 统一封装遍历逻辑：
+// 按扩展名过滤文件，并为每个文件调用 fn(name string)。
+func walkDirFiltered(root string, formats []string, fn func(path string, info os.FileInfo)) error {
+	formatsMap := mapExt(formats)
+
+	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			if filestatus.IsFileBusyError(err) {
+				return nil // 忽略占用错误
+			}
+			return fmt.Errorf("%s: %w", textTr("failReadFiles"), err)
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if len(formatsMap) == 0 || formatsMap[strings.ToLower(filepath.Ext(path))] {
+			fn(path, info)
+		}
+		return nil
+	})
 }

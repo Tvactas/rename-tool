@@ -69,7 +69,7 @@ func ShowDeleteCharRename() {
 
 	// Show rename interface
 	ShowRenameUI(RenameUIConfig{
-		Title:           tr("delete_char_title"),
+		Title:           buttonTr("deleteLetter"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeDeleteChar,
 		ConfigBuilder:   configBuilder,

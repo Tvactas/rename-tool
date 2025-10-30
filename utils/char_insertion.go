@@ -59,7 +59,7 @@ func ShowInsertCharRename() {
 
 	// Show rename interface
 	ShowRenameUI(RenameUIConfig{
-		Title:           tr("insert_char_title"),
+		Title:           buttonTr("insertLetter"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeInsertChar,
 		ConfigBuilder:   configBuilder,

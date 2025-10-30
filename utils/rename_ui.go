@@ -37,6 +37,7 @@ type RenameUIConfig struct {
 // ✅ 主入口函数，整合UI、事件与布局
 func ShowRenameUI(config RenameUIConfig) {
 	ui, err := initRenameUI(config)
+
 	if err != nil {
 		dialog.ShowError(err, global.MainWindow)
 		return
@@ -72,7 +73,7 @@ func ShowRenameUI(config RenameUIConfig) {
 // performRename 执行重命名操作
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
-		errorDiaLog(window, dialogTr("selectDir"))
+		errorDiaLog(window, dialogTr("selectDirFirst"))
 
 		return
 	}
@@ -127,7 +128,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	}
 
 	// 创建进度对话框
-	pd := progress.NewDialog(tr("rename"), window)
+	pd := progress.NewDialog(buttonTr("implement"), window)
 	pd.Show()
 
 	// 使用工作池处理文件

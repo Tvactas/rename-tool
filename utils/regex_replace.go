@@ -45,7 +45,7 @@ func ShowRegexReplace() {
 
 	// Show rename interface
 	ShowRenameUI(RenameUIConfig{
-		Title:           tr("regex_replace_title"),
+		Title:           buttonTr("regexReplace"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeReplace,
 		ConfigBuilder:   configBuilder,

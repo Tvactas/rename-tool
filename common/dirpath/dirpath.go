@@ -2,12 +2,8 @@ package dirpath
 
 import (
 	"errors"
-	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"rename-tool/common/filestatus"
 	"rename-tool/setting/global"
 
 	"fyne.io/fyne/v2"
@@ -16,48 +12,57 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// 获取指定目录下的符合格式的所有文件
+// GetFiles 获取指定目录下符合格式的所有文件
 func GetFiles(root string, formats []string) ([]string, error) {
 	var files []string
-	formatsMap := mapExt(formats)
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			if filestatus.IsFileBusyError(err) {
-				return nil // 忽略文件占用错误
-			}
-			return errors.New(textTr("FailReadFiles") + ": " + err.Error())
-		}
-		if !info.IsDir() && (len(formatsMap) == 0 || formatsMap[strings.ToLower(filepath.Ext(path))]) {
-			files = append(files, path)
-		}
-		return nil
+	err := walkDirFiltered(root, formats, func(path string, _ os.FileInfo) {
+		files = append(files, path)
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", textTr("FailReadFiles"), err)
+		return nil, err
 	}
-
 	return files, nil
 }
 
+// GetShortestFilenameLength 返回目录中文件名的最短长度（忽略子目录）
+func GetShortestFilenameLength(dir string) (int, error) {
+	minLen := -1
+
+	err := walkDirFiltered(dir, nil, func(path string, info os.FileInfo) {
+		nameLen := len(info.Name())
+		if minLen == -1 || nameLen < minLen {
+			minLen = nameLen
+		}
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	if minLen == -1 {
+		return 0, errors.New(textTr("noFiles"))
+	}
+	return minLen, nil
+}
+
+// GetCurrentDir 返回当前工作目录
 func GetCurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		logEvent("PATH ERROR", "FailGetCurrentDir", err)
+		logEvent("PATH ERROR", "failGetCurrentDir", err)
 		return ""
 	}
 	return dir
 }
 
-// 创建目录选择器组件
+// CreateDirSelector 创建目录选择器组件（Fyne UI）
 func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	label := widget.NewLabel(buttonTr("dir") + ": " + truncatePathMiddle(global.SelectedDir, 50))
-	button := widget.NewButton(buttonTr("SelectDir"), func() {
+	button := widget.NewButton(buttonTr("selectDir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err != nil {
 				logEvent("PATH ERROR", "folder_open_error", err)
-
 				return
 			}
 			if uri != nil {
@@ -71,26 +76,4 @@ func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	})
 
 	return container.NewHBox(label, button)
-}
-
-// GetShortestFilenameLength returns the length of the shortest filename in the given directory (ignores subdirectories)
-func GetShortestFilenameLength(dir string) (int, error) {
-	minLength := -1
-	dirEntries, err := os.ReadDir(dir)
-	if err != nil {
-		return 0, err
-	}
-	for _, entry := range dirEntries {
-		if entry.IsDir() {
-			continue
-		}
-		nameLen := len(entry.Name())
-		if minLength == -1 || nameLen < minLength {
-			minLength = nameLen
-		}
-	}
-	if minLength == -1 {
-		return 0, errors.New("no files in directory")
-	}
-	return minLength, nil
 }

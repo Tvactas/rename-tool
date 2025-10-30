@@ -12,7 +12,7 @@ import (
 func initApp(config AppConfig) error {
 	global.MyApp = app.NewWithID(config.AppID)
 	if global.MyApp == nil {
-		return errors.New(textTr("FailInitAppID"))
+		return errors.New(textTr("failInitAppID"))
 	}
 	return nil
 }
@@ -20,7 +20,7 @@ func initApp(config AppConfig) error {
 func initMainWindow(config AppConfig) error {
 	global.MainWindow = global.MyApp.NewWindow(buttonTr("AppName"))
 	if global.MainWindow == nil {
-		return errors.New(textTr("FailCreateMainWindow"))
+		return errors.New(textTr("failCreateMainWindow"))
 	}
 
 	global.MainWindow.Resize(config.WindowSize)
@@ -38,7 +38,7 @@ func initMainWindow(config AppConfig) error {
 func initializeDirectories() error {
 	global.CurrentDir = dirpath.GetCurrentDir()
 	if global.CurrentDir == "" {
-		return errors.New(textTr("FailGetCurrentDir"))
+		return errors.New(textTr("failGetCurrentDir"))
 
 	}
 	global.SelectedDir = global.CurrentDir

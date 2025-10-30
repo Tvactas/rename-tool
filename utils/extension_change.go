@@ -44,7 +44,7 @@ func ShowChangeExtension() {
 
 	// Show rename interface
 	ShowRenameUI(RenameUIConfig{
-		Title:           tr("change_extension_title"),
+		Title:           buttonTr("extensionModify"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeExtension,
 		ConfigBuilder:   configBuilder,

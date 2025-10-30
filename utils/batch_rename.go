@@ -76,7 +76,7 @@ func ShowBatchRenameNormal() {
 
 	// Use common UI display
 	ShowRenameUI(RenameUIConfig{
-		Title:           buttonTr("SequenceRename"),
+		Title:           buttonTr("sequenceRename"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeBatch,
 		ConfigBuilder:   configBuilder,

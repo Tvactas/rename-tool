@@ -31,7 +31,7 @@ func safeUI(f func()) {
 		f()
 		return
 	}
-	fyne.Do(f) // Fyne 官方线程安全执行
+	fyne.Do(f)
 }
 
 func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
@@ -45,7 +45,7 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	})
 
 	title := widget.NewLabelWithStyle(config.Title, fyne.TextAlignCenter, fyne.TextStyle{Bold: false})
-	formatLabel := widget.NewLabel(tr("scan_format") + ": " + tr("scan_not_started"))
+	formatLabel := widget.NewLabel(buttonTr("scanFormat") + ": " + buttonTr("scanNotStart"))
 	formatListContainer := container.NewGridWithColumns(4)
 	selectAllBtn := widget.NewButton(tr("select_all"), nil)
 	selectAllBtn.Hide()
@@ -59,7 +59,7 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 		safeUI(func() {
 			formatListContainer.Objects = nil
 			formatChecks = make(map[string]*widget.Check)
-			formatLabel.SetText(tr("scan_format") + ": " + tr("scan_not_started"))
+			formatLabel.SetText(buttonTr("scanFormat") + ": " + buttonTr("scanNotStart"))
 			selectAllBtn.Hide()
 			formatListContainer.Refresh()
 			formatScroll.Refresh()
@@ -81,57 +81,80 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 	}, nil
 }
 
-func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Button {
-	_ = config
+//
+// ===== 提取扫描逻辑部分 =====
+//
 
-	return widget.NewButton(tr("scan_format"), func() {
-		if global.SelectedDir != "" {
-			errorDiaLog(ui.Window, dialogTr("selectDir"))
-			return
-		}
+// 纯扫描逻辑（与 UI 无关）
+func doScanFormats(dir string) ([]string, error) {
+	if dir == "" {
+		return nil, fmt.Errorf("no directory selected")
+	}
+	return scan.ScanFormats(dir)
+}
 
-		formats, err := scan.ScanFormats(global.SelectedDir)
-		if err != nil {
-			safeUI(func() { ui.FormatLabel.SetText(tr("scan_format") + ": " + tr("scan_failed")) })
-			return
-		}
-
+// UI 更新逻辑（和 UI 状态绑定）
+func updateFormatListUI(ui *RenameUIComponents, formats []string) {
+	safeUI(func() {
 		if len(formats) == 0 {
-			safeUI(func() { ui.FormatLabel.SetText(tr("scan_format") + ": " + tr("scan_no_files")) })
+			ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scan_no_files"))
+			ui.SelectAllBtn.Hide()
 			return
 		}
 
-		safeUI(func() {
-			ui.FormatLabel.SetText(fmt.Sprintf(tr("scan_format")+": "+tr("scan_found_formats"), len(formats)))
-			ui.FormatListContainer.Objects = nil
-			ui.FormatChecks = make(map[string]*widget.Check)
+		ui.FormatLabel.SetText(fmt.Sprintf(buttonTr("scanFormat")+": "+tr("scan_found_formats"), len(formats)))
+		ui.FormatListContainer.Objects = nil
+		ui.FormatChecks = make(map[string]*widget.Check)
 
-			for _, format := range formats {
-				check := widget.NewCheck(format, nil)
-				check.SetChecked(true)
-				ui.FormatChecks[format] = check
-				ui.FormatListContainer.Add(check)
-			}
+		for _, format := range formats {
+			check := widget.NewCheck(format, nil)
+			check.SetChecked(true)
+			ui.FormatChecks[format] = check
+			ui.FormatListContainer.Add(check)
+		}
 
-			ui.SelectAllBtn.OnTapped = func() {
-				allChecked := true
-				for _, check := range ui.FormatChecks {
-					if !check.Checked {
-						allChecked = false
-						break
-					}
-				}
-				for _, check := range ui.FormatChecks {
-					check.SetChecked(!allChecked)
+		ui.SelectAllBtn.OnTapped = func() {
+			allChecked := true
+			for _, check := range ui.FormatChecks {
+				if !check.Checked {
+					allChecked = false
+					break
 				}
 			}
-			ui.SelectAllBtn.Show()
-			ui.FormatListContainer.Refresh()
-			ui.FormatScroll.Refresh()
-			ui.Window.Content().Refresh()
-		})
+			for _, check := range ui.FormatChecks {
+				check.SetChecked(!allChecked)
+			}
+		}
+		ui.SelectAllBtn.Show()
+		ui.FormatListContainer.Refresh()
+		ui.FormatScroll.Refresh()
+		ui.Window.Content().Refresh()
 	})
 }
+
+func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Button {
+	_ = config
+	return widget.NewButton(buttonTr("scanFormat"), func() {
+		if global.SelectedDir == "" {
+			errorDiaLog(ui.Window, dialogTr("selectDirFirst"))
+			return
+		}
+
+		formats, err := doScanFormats(global.SelectedDir)
+		if err != nil {
+			safeUI(func() {
+				ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scan_failed"))
+			})
+			return
+		}
+
+		updateFormatListUI(ui, formats)
+	})
+}
+
+//
+// ===== 其他按钮逻辑保持不动 =====
+//
 
 func setupPreviewButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Button {
 	return widget.NewButton(buttonTr("preview"), func() {
@@ -167,8 +190,8 @@ func setupPreviewButton(ui *RenameUIComponents, config RenameUIConfig) *widget.B
 }
 
 func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Button {
-	var btn *widget.Button // 先声明
-	btn = widget.NewButton(tr("rename"), func() {
+	var btn *widget.Button
+	btn = widget.NewButton(buttonTr("implement"), func() {
 		var selectedFormats []string
 		for format, check := range ui.FormatChecks {
 			if check.Checked {
@@ -190,7 +213,7 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 			return
 		}
 
-		btn.Disable() // ✅ 安全使用
+		btn.Disable()
 		performRename(ui.Window, renameConfig)
 
 		time.AfterFunc(500*time.Millisecond, func() {
@@ -207,7 +230,7 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 }
 
 func setupBackButton(ui *RenameUIComponents) *widget.Button {
-	return widget.NewButton(tr("back"), func() {
+	return widget.NewButton(buttonTr("back"), func() {
 		ui.Window.Close()
 		global.MyApp.Settings().SetTheme(&theme.MainTheme{})
 		global.MainWindow.Show()
