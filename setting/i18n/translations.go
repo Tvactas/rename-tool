@@ -43,6 +43,7 @@ var dialog_translations = map[string]map[string]string{
 		"copySuccess":      "复制成功",
 		"noUndoOperations": "没有可撤销的操作",
 		"undoSuccess":      "成功撤销重命名 %d 个文件",
+		"renameSuccess":    "重命名成功11",
 	},
 	"en": {
 		"success":          "✅ SUCCESS",
@@ -57,6 +58,7 @@ var dialog_translations = map[string]map[string]string{
 		"copySuccess":      "Copied successfully",
 		"noUndoOperations": "No operations to undo",
 		"undoSuccess":      "Successfully undone renaming %d files",
+		"renameSuccess":    "Rename Successful",
 	},
 	"ja": {
 		"success":          "✅ 成功",
@@ -71,6 +73,7 @@ var dialog_translations = map[string]map[string]string{
 		"copySuccess":      "コピーしました",
 		"noUndoOperations": "元に戻す操作がありません",
 		"undoSuccess":      "%d ファイルの名前変更を正常に元に戻しました",
+		"renameSuccess":    "リネーム成功",
 	},
 }
 
@@ -106,11 +109,15 @@ var button_translations = map[string]map[string]string{
 		"insertText":          "插入文本",
 		"insertPosition":      "插入位置",
 		"prefixText":          "前缀文本",
+		"prefixDigits":        "前缀位数",
 		"suffixText":          "后缀文本",
+		"suffixDigits":        "后缀位数",
+		"keepOriginal":        "保留原文件名",
 		"replaceText":         "替换文本",
 		"replacePattern":      "需替换文本(勾选正则时支持正则表达式)",
 		"deleteLength":        "删除长度",
 		"deletePosition":      "删除起始位置",
+		"newExtension":        "新扩展名",
 	},
 	"en": {
 		"AppName":             "File Rename Tool",
@@ -143,11 +150,15 @@ var button_translations = map[string]map[string]string{
 		"insertText":          "Insert Text",
 		"insertPosition":      "Insert Position",
 		"prefixText":          "Prefix Text",
+		"prefixDigits":        "Prefix Digits",
 		"suffixText":          "Suffix Text",
+		"suffixDigits":        "Suffix Digits",
+		"keepOriginal":        "Keep Original Name",
 		"replaceText":         "Replace Text",
 		"replacePattern":      "Replace Pattern (supports regex if checked)",
 		"deleteLength":        "Delete Length",
 		"deletePosition":      "Delete Start Position",
+		"newExtension":        "New Extension",
 	},
 	"ja": {
 		"AppName":             "ファイル名変更ツール",
@@ -180,11 +191,15 @@ var button_translations = map[string]map[string]string{
 		"insertText":          "挿入テキスト",
 		"insertPosition":      "挿入位置",
 		"prefixText":          "プレフィックステキスト",
+		"prefixDigits":        "プレフィックス桁数",
 		"suffixText":          "サフィックステキスト",
+		"suffixDigits":        "サフィックス桁数",
+		"keepOriginal":        "元のファイル名を保持",
 		"replaceText":         "置換テキスト",
 		"replacePattern":      "置換パターン（チェックすると正規表現をサポート）",
 		"deleteLength":        "削除長さ",
 		"deletePosition":      "削除開始位置",
+		"newExtension":        "新しい拡張子",
 	},
 }
 
@@ -230,12 +245,6 @@ var text_translations = map[string]map[string]string{
 // Translations 存储所有语言的翻译
 var Translations = map[string]map[string]string{
 	"zh": {
-		"keep_original":                     "保留原文件名",
-		"new_extension":                     "新扩展名",
-		"prefix_digits":                     "前缀位数",
-		"suffix_digits":                     "后缀位数",
-		"file_not_found":                    "❌ 文件不存在",
-		"rename_success":                    "重命名成功",
 		"duplicate_names":                   "以下文件将重命名为相同的名称",
 		"init_dir_failed":                   "❌ 初始化目录失败",
 		"start_from_zero":                   "序号从0开始",
@@ -273,12 +282,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"en": {
-		"keep_original":                     "Keep Original Name",
-		"new_extension":                     "New Extension",
-		"prefix_digits":                     "Prefix Digits",
-		"suffix_digits":                     "Suffix Digits",
-		"file_not_found":                    "❌ File not found",
-		"rename_success":                    "Rename Successful",
 		"duplicate_names":                   "The following files have duplicate names",
 		"init_dir_failed":                   "❌ Failed to initialize directories",
 		"start_from_zero":                   "Start from Zero",
@@ -317,12 +320,6 @@ var Translations = map[string]map[string]string{
 	},
 
 	"ja": {
-		"keep_original":                     "元のファイル名を保持",
-		"new_extension":                     "新しい拡張子",
-		"prefix_digits":                     "プレフィックス桁数",
-		"suffix_digits":                     "サフィックス桁数",
-		"file_not_found":                    "❌ ファイルが見つかりません",
-		"rename_success":                    "リネーム成功",
 		"duplicate_names":                   "以下のファイル名が重複しています",
 		"init_dir_failed":                   "❌ ディレクトリの初期化に失敗しました",
 		"start_from_zero":                   "0から開始",

@@ -15,7 +15,7 @@ import (
 // ShowChangeExtension displays the extension change interface
 func ShowChangeExtension() {
 	// Create configuration form
-	newExtLabel := widget.NewLabel(tr("new_extension"))
+	newExtLabel := widget.NewLabel(buttonTr("newExtension"))
 	newExtEntry := widget.NewEntry()
 	configForm := container.NewVBox(
 		newExtLabel,

@@ -20,7 +20,7 @@ func ShowBatchRenameNormal() {
 	prefixText := widget.NewEntry()
 	prefixText.SetPlaceHolder(buttonTr("prefixText"))
 
-	keepOriginal := widget.NewCheck(tr("keep_original"), nil)
+	keepOriginal := widget.NewCheck(buttonTr("keepOriginal"), nil)
 	keepOriginal.SetChecked(true)
 
 	suffixText := widget.NewEntry()
@@ -42,11 +42,11 @@ func ShowBatchRenameNormal() {
 
 	// Create configuration form
 	configForm := widget.NewForm(
-		widget.NewFormItem(tr("prefix_digits"), prefixDigits),
+		widget.NewFormItem(buttonTr("prefixDigits"), prefixDigits),
 		widget.NewFormItem(buttonTr("prefixText"), prefixText),
 		widget.NewFormItem("", keepOriginal),
 		widget.NewFormItem(buttonTr("suffixText"), suffixText),
-		widget.NewFormItem(tr("suffix_digits"), suffixDigits),
+		widget.NewFormItem(buttonTr("suffixDigits"), suffixDigits),
 		widget.NewFormItem("", optionRow),
 	)
 

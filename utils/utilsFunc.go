@@ -214,7 +214,7 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 			safeUI(func() {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title:   tr("rename_done"),
-					Content: tr("rename_success"),
+					Content: dialogTr("renameSuccess"),
 				})
 				btn.Enable()
 			})
