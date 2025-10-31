@@ -16,7 +16,7 @@ func ShowRegexReplace() {
 	// Create configuration form
 	replacePatternEntry := widget.NewEntry()
 	replaceTextEntry := widget.NewEntry()
-	useRegexCheck := widget.NewCheck(tr("use_regex"), nil)
+	useRegexCheck := widget.NewCheck(buttonTr("useRegex"), nil)
 	configForm := container.NewVBox(
 		widget.NewLabel(tr("replace_pattern")),
 		replacePatternEntry,

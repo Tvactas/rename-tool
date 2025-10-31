@@ -14,24 +14,24 @@ const (
 
 // RenameConfig 重命名配置
 type RenameConfig struct {
-	Type                    RenameType `json:"type"`
-	SelectedDir             string     `json:"selected_dir"`
-	Formats                 []string   `json:"formats"`
-	PrefixDigits            int        `json:"prefix_digits"`
-	PrefixText              string     `json:"prefix_text"`
-	SuffixDigits            int        `json:"suffix_digits"`
-	SuffixText              string     `json:"suffix_text"`
-	KeepOriginal            bool       `json:"keep_original"`
-	NewExtension            string     `json:"new_extension"`
-	CaseType                string     `json:"case_type"`
-	InsertPosition          int        `json:"insert_position"`
-	InsertText              string     `json:"insert_text"`
-	ReplacePattern          string     `json:"replace_pattern"`
-	ReplaceText             string     `json:"replace_text"`
-	UseRegex                bool       `json:"use_regex"`
-	FormatSpecificNumbering bool       `json:"format_specific_numbering"`
-	StartFromZero           bool       `json:"start_from_zero"`
-	DeleteStartPosition     int        `json:"delete_start_position"`
-	DeleteLength            int        `json:"delete_length"`
-	Filename                string     `json:"filename"`
+    Type                    RenameType
+    SelectedDir             string
+    Formats                 []string
+    PrefixDigits            int
+    PrefixText              string
+    SuffixDigits            int
+    SuffixText              string
+    KeepOriginal            bool
+    NewExtension            string
+    CaseType                string
+    InsertPosition          int
+    InsertText              string
+    ReplacePattern          string
+    ReplaceText             string
+    UseRegex                bool
+    FormatSpecificNumbering bool
+    StartFromZero           bool
+    DeleteStartPosition     int
+    DeleteLength            int
+    Filename                string
 }

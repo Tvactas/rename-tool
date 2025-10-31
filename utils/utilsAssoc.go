@@ -38,3 +38,22 @@ func errorDiaLog(window fyne.Window, message string) {
 		window,
 	)
 }
+
+// Show an error dialog bound to the specified window, to avoid always falling to global.MainWindow
+func successDiaLog(window fyne.Window, message string) {
+	dialogcustomize.ShowMessageDialog(
+		"success",
+		dialogTr("success"),
+		message,
+		window,
+	)
+}
+
+func warningMultiDiaLog(window fyne.Window, paths []string) {
+	dialogcustomize.ShowMultiLineCopyDialog(
+		"warning",
+		dialogTr("warning"),
+		paths,
+		window,
+	)
+}

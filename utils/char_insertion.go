@@ -19,9 +19,9 @@ func ShowInsertCharRename() {
 	positionEntry := widget.NewEntry()
 	insertTextEntry := widget.NewEntry()
 	configForm := container.NewVBox(
-		widget.NewLabel(tr("insert_position")),
+		widget.NewLabel(buttonTr("insertPosition")),
 		positionEntry,
-		widget.NewLabel(tr("insert_text")),
+		widget.NewLabel(buttonTr("insertText")),
 		insertTextEntry,
 	)
 

@@ -40,7 +40,7 @@ func ShowRenameUI(config RenameUIConfig) {
 	ui, err := initRenameUI(config)
 
 	if err != nil {
-		dialog.ShowError(err, global.MainWindow)
+		errorDiaLog(global.MainWindow, err.Error())
 		return
 	}
 
@@ -90,7 +90,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.Type == model.RenameTypeReplace {
 		duplicates, err := pathgen.CheckDuplicateNames(files, config)
 		if err != nil {
-			dialog.ShowError(err, window)
+			// dialog.ShowError(err, window)
 			return
 		}
 		if len(duplicates) > 0 {
@@ -253,7 +253,6 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		ui.ShowLengthErrorDialog(window, lengthErrorFiles)
 		return
 	}
-	dialogcustomize.ShowMultiLineCopyDialog("error", tr("rename_failed_files"), busyFiles, window)
 
 	// 直接用弹窗列出未完成重命名的文件
 	if len(busyFiles) > 0 {

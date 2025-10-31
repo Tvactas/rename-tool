@@ -6,8 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 )
 
 // 普通消息框
@@ -16,7 +16,6 @@ func ShowMessageDialog(kind, title, message string, window fyne.Window) {
 	d := showBaseDialog(title, message, window, bg, 400)
 	d.Show()
 }
-
 
 // 多行+复制按钮专用弹窗
 func ShowMultiLineCopyDialog(kind, title string, paths []string, window fyne.Window) {
