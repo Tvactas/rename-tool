@@ -18,7 +18,7 @@ func ShowBatchRenameNormal() {
 	prefixDigits := widget.NewSelect([]string{"0", "1", "2", "3", "4", "5"}, nil)
 	prefixDigits.SetSelected("0")
 	prefixText := widget.NewEntry()
-	prefixText.SetPlaceHolder(tr("prefix_placeholder"))
+	prefixText.SetPlaceHolder(buttonTr("prefixText"))
 
 	keepOriginal := widget.NewCheck(tr("keep_original"), nil)
 	keepOriginal.SetChecked(true)
@@ -43,9 +43,9 @@ func ShowBatchRenameNormal() {
 	// Create configuration form
 	configForm := widget.NewForm(
 		widget.NewFormItem(tr("prefix_digits"), prefixDigits),
-		widget.NewFormItem(tr("prefix_text"), prefixText),
+		widget.NewFormItem(buttonTr("prefixText"), prefixText),
 		widget.NewFormItem("", keepOriginal),
-		widget.NewFormItem(tr("suffix_text"), suffixText),
+		widget.NewFormItem(buttonTr("suffixText"), suffixText),
 		widget.NewFormItem(tr("suffix_digits"), suffixDigits),
 		widget.NewFormItem("", optionRow),
 	)

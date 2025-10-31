@@ -19,9 +19,9 @@ func ShowDeleteCharRename() {
 	startPositionEntry := widget.NewEntry()
 	deleteLengthEntry := widget.NewEntry()
 	configForm := container.NewVBox(
-		widget.NewLabel(tr("delete_start_position")),
+		widget.NewLabel(buttonTr("deletePosition")),
 		startPositionEntry,
-		widget.NewLabel(tr("delete_length")),
+		widget.NewLabel(buttonTr("deleteLength")),
 		deleteLengthEntry,
 	)
 
@@ -33,7 +33,6 @@ func ShowDeleteCharRename() {
 			Type:                model.RenameTypeDeleteChar,
 			DeleteStartPosition: startPosition,
 			DeleteLength:        deleteLength,
-			Filename:            "your_filename_here",
 		}
 	}
 
@@ -43,10 +42,10 @@ func ShowDeleteCharRename() {
 		startPositionStr := startPositionEntry.Text
 		deleteLengthStr := deleteLengthEntry.Text
 		if _, err := strconv.Atoi(startPositionStr); err != nil {
-			return errors.New(tr("position_must_be_number"))
+			return errors.New(textTr("isNotNumber"))
 		}
 		if _, err := strconv.Atoi(deleteLengthStr); err != nil {
-			return errors.New(tr("delete_length_must_be_number"))
+			return errors.New(textTr("delLengthIsNotNumber"))
 		}
 
 		// 获取最短文件名长度
@@ -56,7 +55,7 @@ func ShowDeleteCharRename() {
 		}
 
 		if config.DeleteStartPosition > minLen {
-			return errors.New(tr("position_exceeds_length"))
+			return errors.New(textTr("positionExceedsLength"))
 		}
 		if config.DeleteLength < 0 {
 			return errors.New(tr("delete_length_negative"))

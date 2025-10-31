@@ -11,7 +11,6 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -170,13 +169,13 @@ func setupPreviewButton(ui *RenameUIComponents, config RenameUIConfig) *widget.B
 		renameConfig.Formats = selectedFormats
 
 		if err := config.ValidateConfig(renameConfig); err != nil {
-			dialog.ShowError(err, ui.Window)
+			errorDiaLog(ui.Window, err.Error())
 			return
 		}
 
 		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
 		if err != nil {
-			dialog.ShowError(err, ui.Window)
+			errorDiaLog(ui.Window, err.Error())
 			return
 		}
 
@@ -204,7 +203,7 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 		renameConfig.Formats = selectedFormats
 
 		if err := config.ValidateConfig(renameConfig); err != nil {
-			dialog.ShowError(err, ui.Window)
+			errorDiaLog(ui.Window, err.Error())
 			return
 		}
 

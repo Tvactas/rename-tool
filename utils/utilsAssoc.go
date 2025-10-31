@@ -20,6 +20,10 @@ func buttonTr(key string) string {
 	return i18n.ButtonTr(key)
 }
 
+func textTr(key string) string {
+	return i18n.TextTr(key)
+}
+
 func warningDiaLog(window fyne.Window, message string) {
 	dialogcustomize.ShowMessageDialog(
 		"warning",

@@ -40,7 +40,7 @@ func ShowInsertCharRename() {
 		// 1. 检查输入是否为数字（在configBuilder中已转换，但这里做二次校验）
 		positionStr := positionEntry.Text
 		if _, err := strconv.Atoi(positionStr); err != nil {
-			return errors.New(tr("position_must_be_number"))
+			return errors.New(textTr("isNotNumber"))
 		}
 
 		// 获取最短文件名长度
@@ -49,10 +49,10 @@ func ShowInsertCharRename() {
 			return err
 		}
 		if config.InsertPosition > minLen {
-			return errors.New(tr("position_exceeds_length"))
+			return errors.New(textTr("positionExceedsLength"))
 		}
 		if config.InsertText == "" {
-			return errors.New(tr("insert_text_empty"))
+			return errors.New(textTr("insertEmptyText"))
 		}
 		return nil
 	}
