@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"rename-tool/common/antisamename"
 	"rename-tool/common/dialogcustomize"
 	"rename-tool/common/dirpath"
 	"rename-tool/common/filestatus"
@@ -86,11 +87,19 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	}
 
+	// 统一防重名预检（批量内部重复、命中磁盘已存在路径）
+	if stop, err := antisamename.CheckAndShowConflicts(window, files, config); err != nil {
+		dialog.ShowError(err, window)
+		return
+	} else if stop {
+		return
+	}
+
 	// 检查重名
 	if config.Type == model.RenameTypeReplace {
 		duplicates, err := pathgen.CheckDuplicateNames(files, config)
 		if err != nil {
-			// dialog.ShowError(err, window)
+			dialog.ShowError(err, window)
 			return
 		}
 		if len(duplicates) > 0 {
