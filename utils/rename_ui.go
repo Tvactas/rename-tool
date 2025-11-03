@@ -13,7 +13,6 @@ import (
 	"rename-tool/common/filestatus"
 	"rename-tool/common/pathgen"
 	"rename-tool/common/progress"
-	"rename-tool/common/ui"
 	"rename-tool/setting/global"
 	"rename-tool/setting/model"
 
@@ -217,7 +216,6 @@ func generateRenamePath(file string, config model.RenameConfig, counter *int, co
 // errorResults 错误结果集合
 type errorResults struct {
 	busyFiles   []string
-	lengthFiles []string
 	otherErrors map[string]error
 }
 
@@ -232,15 +230,9 @@ func collectRenameResults(resultChan <-chan struct {
 
 	for result := range resultChan {
 		if result.err != nil {
-			isLenErr := false
-			if _, ok := result.err.(*ui.FilenameLengthError); ok {
-				isLenErr = true
-			}
 			switch {
 			case filestatus.IsFileBusyError(result.err):
 				results.busyFiles = append(results.busyFiles, result.file)
-			case isLenErr:
-				results.lengthFiles = append(results.lengthFiles, result.file)
 			default:
 				results.otherErrors[result.file] = result.err
 			}
@@ -278,7 +270,7 @@ func showRenameResults(window fyne.Window, results errorResults, totalFiles int)
 	}
 
 	// 所有文件都成功
-	if len(results.busyFiles) == 0 && len(results.lengthFiles) == 0 && len(results.otherErrors) == 0 {
+	if len(results.busyFiles) == 0 && len(results.otherErrors) == 0 {
 		successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), totalFiles))
 	}
 }

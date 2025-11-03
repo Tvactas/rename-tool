@@ -52,6 +52,7 @@ var dialog_translations = map[string]map[string]string{
 		"operationCancelled": "操作已取消",
 		"successRenameCount": "重命名 %d 个文件",
 		"totalFiles":         "修改文件总数",
+		"logSaveError":       "日志保存失败",
 	},
 	"en": {
 		"success":            "✅ SUCCESS",
@@ -72,6 +73,7 @@ var dialog_translations = map[string]map[string]string{
 		"operationCancelled": "Operation Cancelled",
 		"successRenameCount": "Renamed %d files",
 		"totalFiles":         "Total files to modify",
+		"logSaveError":       "Failed to save log",
 	},
 	"ja": {
 		"success":            "✅ 成功",
@@ -92,6 +94,7 @@ var dialog_translations = map[string]map[string]string{
 		"operationCancelled": "操作がキャンセルされました",
 		"successRenameCount": "%d 件のファイルの名前を変更しました",
 		"totalFiles":         "変更するファイルの総数",
+		"logSaveError":       "ログの保存に失敗しました",
 	},
 }
 

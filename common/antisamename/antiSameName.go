@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -83,6 +84,8 @@ func CheckConflicts(files []string, config model.RenameConfig) ([]string, error)
 	for p := range conflictsSet {
 		out = append(out, p)
 	}
+	// stable ordering for deterministic UI
+	sort.Strings(out)
 	return out, nil
 }
 
