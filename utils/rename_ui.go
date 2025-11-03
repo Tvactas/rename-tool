@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
@@ -75,14 +74,12 @@ func ShowRenameUI(config RenameUIConfig) {
 func performRename(window fyne.Window, config model.RenameConfig) {
 	if config.SelectedDir == "" {
 		errorDiaLog(window, dialogTr("selectDirFirst"))
-
 		return
 	}
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
 		errorDiaLog(window, dialogTr("failGetFiles"))
-
 		return
 	}
 
@@ -94,7 +91,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	}
 
-	// 检查重名
+	// 检查重名（仅替换类型）
 	if config.Type == model.RenameTypeReplace {
 		duplicates, err := pathgen.CheckDuplicateNames(files, config)
 		if err != nil {
@@ -102,36 +99,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 			return
 		}
 		if len(duplicates) > 0 {
-			content := strings.Join(duplicates, "\n")
-			textArea := widget.NewMultiLineEntry()
-			textArea.SetText(content)
-			textArea.Wrapping = fyne.TextWrapWord
-			textArea.Disable()
-			////================================
-			copyBtn := widget.NewButton("copy", func() {
-				window.Clipboard().SetContent(content)
-				dialog.ShowInformation(dialogTr("success"), "copySuccess", window)
-			})
-			////================================
-			closeBtn := widget.NewButton("close", nil)
-
-			dialogContent := container.NewBorder(
-				widget.NewLabel(dialogTr("error")+": "+dialogTr("duplicateNames")),
-				container.NewHBox(copyBtn, layout.NewSpacer(), closeBtn),
-				nil,
-				nil,
-				container.NewStack(textArea),
-			)
-
-			dialog := dialog.NewCustom(
-				dialogTr("error"),
-				"",
-				dialogContent,
-				window,
-			)
-
-			closeBtn.OnTapped = dialog.Hide
-			dialog.Show()
+			dialogcustomize.ShowMultiLineCopyDialog("error", dialogTr("duplicateNames"), duplicates, window)
 			return
 		}
 	}
@@ -161,62 +129,28 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		go func() {
 			defer wg.Done()
 			for file := range fileChan {
-				var newPath string
-				var err error
-
-				switch config.Type {
-				case model.RenameTypeBatch:
-					counterMutex.Lock()
-					currentCounter := counter
-					counter++
-					counterMutex.Unlock()
-
-					// 使用互斥锁保护counters map的访问
-					countersMutex.Lock()
-					// 如果是第一次遇到这个扩展名，重置计数器
-					ext := filepath.Ext(file)
-					if _, exists := counters[ext]; !exists {
-						counters[ext] = 0
-					}
-					newPath, err = pathgen.GenerateBatchRenamePath(file, config, currentCounter, counters)
-					countersMutex.Unlock()
-				case model.RenameTypeExtension:
-					newPath, err = pathgen.GenerateExtensionRenamePath(file, config)
-				case model.RenameTypeCase:
-					newPath, err = pathgen.GenerateCaseRenamePath(file, config)
-				case model.RenameTypeInsertChar:
-					newPath, err = pathgen.GenerateInsertCharRenamePath(file, config)
-				case model.RenameTypeReplace:
-					newPath, err = pathgen.GenerateReplaceRenamePath(file, config)
-				case model.RenameTypeDeleteChar:
-					newPath, err = pathgen.GenerateDeleteCharRenamePath(file, config)
-				}
-
+				// 生成新路径
+				newPath, err := generateRenamePath(file, config, &counter, &counterMutex, counters, &countersMutex)
 				if err != nil {
 					resultChan <- struct {
 						file string
 						err  error
-					}{
-						file: file,
-						err:  err,
-					}
+					}{file: file, err: err}
 					continue
 				}
 
-				err = filestatus.RenameFile(file, newPath)
-				if err == nil {
-					global.Logs = append(global.Logs, global.RenameLog{
-						Original: file,
-						New:      newPath,
-						Time:     time.Now().Format("2006-01-02 15:04:05"),
-					})
-				}
-				resultChan <- struct {
-					file string
-					err  error
-				}{
-					file: file,
-					err:  err,
+				// 执行重命名
+				if err := filestatus.RenameFile(file, newPath); err != nil {
+					resultChan <- struct {
+						file string
+						err  error
+					}{file: file, err: err}
+				} else {
+					appendRenameLog(file, newPath)
+					resultChan <- struct {
+						file string
+						err  error
+					}{file: file, err: nil}
 				}
 			}
 		}()
@@ -233,18 +167,82 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	}()
 
 	// 处理结果
-	busyFiles := []string{}
-	lengthErrorFiles := []string{}
-	otherErrors := make(map[string]error)
+	errorResults := collectRenameResults(resultChan, pd)
+	pd.Hide()
+
+	if pd.IsCancelled() {
+		warningDiaLog(window, dialogTr("operationCancelled"))
+		return
+	}
+
+	// 显示错误或成功消息
+	showRenameResults(window, errorResults, len(files))
+}
+
+// generateRenamePath 生成重命名路径
+func generateRenamePath(file string, config model.RenameConfig, counter *int, counterMutex *sync.Mutex,
+	counters map[string]int, countersMutex *sync.Mutex) (string, error) {
+	switch config.Type {
+	case model.RenameTypeBatch:
+		// 批量重命名需要计数器和扩展名计数器
+		counterMutex.Lock()
+		currentCounter := *counter
+		*counter++
+		counterMutex.Unlock()
+
+		countersMutex.Lock()
+		ext := filepath.Ext(file)
+		if _, exists := counters[ext]; !exists {
+			counters[ext] = 0
+		}
+		newPath, err := pathgen.GenerateBatchRenamePath(file, config, currentCounter, counters)
+		countersMutex.Unlock()
+		return newPath, err
+
+	case model.RenameTypeExtension:
+		return pathgen.GenerateExtensionRenamePath(file, config)
+	case model.RenameTypeCase:
+		return pathgen.GenerateCaseRenamePath(file, config)
+	case model.RenameTypeInsertChar:
+		return pathgen.GenerateInsertCharRenamePath(file, config)
+	case model.RenameTypeReplace:
+		return pathgen.GenerateReplaceRenamePath(file, config)
+	case model.RenameTypeDeleteChar:
+		return pathgen.GenerateDeleteCharRenamePath(file, config)
+	default:
+		return "", fmt.Errorf("unsupported rename type: %v", config.Type)
+	}
+}
+
+// errorResults 错误结果集合
+type errorResults struct {
+	busyFiles   []string
+	lengthFiles []string
+	otherErrors map[string]error
+}
+
+// collectRenameResults 收集重命名结果
+func collectRenameResults(resultChan <-chan struct {
+	file string
+	err  error
+}, pd *progress.Dialog) errorResults {
+	results := errorResults{
+		otherErrors: make(map[string]error),
+	}
+
 	for result := range resultChan {
 		if result.err != nil {
-			if filestatus.IsFileBusyError(result.err) {
-				busyFiles = append(busyFiles, result.file)
-			} else if _, ok := result.err.(*ui.FilenameLengthError); ok {
-				lengthErrorFiles = append(lengthErrorFiles, result.file)
-			} else {
-				// 收集其他类型的错误（权限、磁盘空间等），保存错误信息
-				otherErrors[result.file] = result.err
+			isLenErr := false
+			if _, ok := result.err.(*ui.FilenameLengthError); ok {
+				isLenErr = true
+			}
+			switch {
+			case filestatus.IsFileBusyError(result.err):
+				results.busyFiles = append(results.busyFiles, result.file)
+			case isLenErr:
+				results.lengthFiles = append(results.lengthFiles, result.file)
+			default:
+				results.otherErrors[result.file] = result.err
 			}
 		}
 
@@ -253,29 +251,34 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		}
 	}
 
-	pd.Hide()
+	return results
+}
 
-	if pd.IsCancelled() {
-		warningDiaLog(window, dialogTr("operationCancelled"))
-		return
-	}
+// appendRenameLog 追加重命名日志
+func appendRenameLog(original, newPath string) {
+	global.Logs = append(global.Logs, global.RenameLog{
+		Original: original,
+		New:      newPath,
+		Time:     time.Now().Format("2006-01-02 15:04:05"),
+	})
+}
 
+// showRenameResults 显示重命名结果
+func showRenameResults(window fyne.Window, results errorResults, totalFiles int) {
 	// 显示文件占用错误
-	if len(busyFiles) > 0 {
-		////================================
-		dialogcustomize.ShowMultiLineCopyDialog("error", "rename_failed_files", busyFiles, window)
+	if len(results.busyFiles) > 0 {
+		dialogcustomize.ShowMultiLineCopyDialog("error", "rename_failed_files", results.busyFiles, window)
 		return
 	}
 
-	// 显示其他类型的错误（权限、磁盘空间等），显示详细的错误信息
-	if len(otherErrors) > 0 {
-		////================================
-		dialogcustomize.ShowMultiLineErrorDialog("error", "rename_failed_files", otherErrors, window)
+	// 显示其他类型的错误（权限、磁盘空间等）
+	if len(results.otherErrors) > 0 {
+		dialogcustomize.ShowMultiLineErrorDialog("error", "rename_failed_files", results.otherErrors, window)
 		return
 	}
 
 	// 所有文件都成功
-	if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 && len(otherErrors) == 0 {
-		successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), len(files)))
+	if len(results.busyFiles) == 0 && len(results.lengthFiles) == 0 && len(results.otherErrors) == 0 {
+		successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), totalFiles))
 	}
 }

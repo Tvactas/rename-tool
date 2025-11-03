@@ -4,7 +4,9 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// Check IsAdmin
+// 判断是否为管理员权限打开
+// 暴露IsAdmin函数
+// 在主页mainWindows中显示
 func IsAdmin() bool {
 	sid, err := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
 	if err != nil {

@@ -44,6 +44,10 @@ func ShowInsertCharRename() {
 			return errors.New(textTr("isNotNumber"))
 		}
 
+		if config.InsertPosition < 0 {
+			return errors.New(textTr("insertPositionNegative"))
+		}
+
 		if config.InsertText == "" {
 			return errors.New(textTr("insertEmptyText"))
 		}
@@ -70,6 +74,11 @@ func ShowInsertCharRename() {
 			if config.InsertPosition > len(runes) {
 				lengthErrorFiles = append(lengthErrorFiles, baseName)
 			}
+		}
+
+		// 若存在长度不足的文件，返回可读错误
+		if len(lengthErrorFiles) > 0 {
+			return errors.New(textTr("insertPositionExceededLength"))
 		}
 
 		return nil

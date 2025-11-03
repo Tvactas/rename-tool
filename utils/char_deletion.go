@@ -41,14 +41,18 @@ func ShowDeleteCharRename() {
 		// 1. 检查输入是否为数字（在configBuilder中已转换，但这里做二次校验）
 		startPositionStr := startPositionEntry.Text
 		deleteLengthStr := deleteLengthEntry.Text
-		if _, err := strconv.Atoi(startPositionStr); err != nil {
+        if _, err := strconv.Atoi(startPositionStr); err != nil {
 			return errors.New(textTr("isNotNumber"))
 		}
 		if _, err := strconv.Atoi(deleteLengthStr); err != nil {
 			return errors.New(textTr("delLengthIsNotNumber"))
 		}
 
-		// 获取最短文件名长度
+        if config.DeleteStartPosition < 0 {
+            return errors.New(textTr("deleteStartNegative"))
+        }
+
+        // 获取最短文件名长度
 		minLen, err := dirpath.GetShortestFilenameLength(global.SelectedDir)
 		if err != nil {
 			return err

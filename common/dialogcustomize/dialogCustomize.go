@@ -26,8 +26,21 @@ func ShowMultiLineCopyDialog(kind, title string, paths []string, window fyne.Win
 	textArea := widget.NewMultiLineEntry()
 	textArea.SetText(content)
 	textArea.Wrapping = fyne.TextWrapWord
-	textArea.Disable()
 	textArea.SetMinRowsVisible(6)
+
+    // 保持可见文本为常规深色，同时禁止用户编辑
+    original := content
+    isUpdating := false
+    textArea.OnChanged = func(s string) {
+        if isUpdating {
+            return
+        }
+        if s != original {
+            isUpdating = true
+            textArea.SetText(original)
+            isUpdating = false
+        }
+    }
 
 	contentContainer := createContentContainer(textArea, 400, bg)
 
@@ -60,8 +73,21 @@ func ShowMultiLineErrorDialog(kind, title string, errors map[string]error, windo
 	textArea := widget.NewMultiLineEntry()
 	textArea.SetText(content)
 	textArea.Wrapping = fyne.TextWrapWord
-	textArea.Disable()
 	textArea.SetMinRowsVisible(6)
+
+    // 保持可见文本为常规深色，同时禁止用户编辑
+    original := content
+    isUpdating := false
+    textArea.OnChanged = func(s string) {
+        if isUpdating {
+            return
+        }
+        if s != original {
+            isUpdating = true
+            textArea.SetText(original)
+            isUpdating = false
+        }
+    }
 
 	contentContainer := createContentContainer(textArea, 500, bg)
 
