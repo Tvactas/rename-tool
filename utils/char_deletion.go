@@ -58,10 +58,10 @@ func ShowDeleteCharRename() {
 			return errors.New(textTr("positionExceedsLength"))
 		}
 		if config.DeleteLength < 0 {
-			return errors.New(tr("delete_length_negative"))
+			return errors.New(textTr("delLengthNegative"))
 		}
 		if config.DeleteStartPosition+config.DeleteLength > minLen {
-			return errors.New(tr("delete_range_exceeds_length"))
+			return errors.New(textTr("delExceedsFileLenght"))
 		}
 		return nil
 	}

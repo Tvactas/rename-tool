@@ -62,7 +62,7 @@ func CreateDirSelector(win fyne.Window, onDirChanged func()) fyne.CanvasObject {
 	button := widget.NewButton(buttonTr("selectDir"), func() {
 		dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err != nil {
-				logEvent("PATH ERROR", "folder_open_error", err)
+				logEvent("PATH ERROR", "folderOpenError", err)
 				return
 			}
 			if uri != nil {

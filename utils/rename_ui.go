@@ -16,7 +16,6 @@ import (
 	"rename-tool/common/progress"
 	"rename-tool/common/ui"
 	"rename-tool/setting/global"
-	"rename-tool/setting/i18n"
 	"rename-tool/setting/model"
 
 	"fyne.io/fyne/v2"
@@ -82,7 +81,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	// 获取文件列表
 	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
 	if err != nil {
-		errorDiaLog(window, tr("error_getting_files"))
+		errorDiaLog(window, dialogTr("failGetFiles"))
 
 		return
 	}
@@ -117,7 +116,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 			closeBtn := widget.NewButton(tr("close"), nil)
 
 			dialogContent := container.NewBorder(
-				widget.NewLabel(dialogTr("error")+": "+tr("duplicate_names")),
+				widget.NewLabel(dialogTr("error")+": "+dialogTr("duplicateNames")),
 				container.NewHBox(copyBtn, layout.NewSpacer(), closeBtn),
 				nil,
 				nil,
@@ -253,7 +252,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	pd.Hide()
 
 	if pd.IsCancelled() {
-		dialog.ShowInformation(dialogTr("warning"), tr("operation_cancelled"), window)
+		warningDiaLog(window, dialogTr("operationCancelled"))
 		return
 	}
 
@@ -269,7 +268,7 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	} else {
 		if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 {
-			dialog.ShowInformation(dialogTr("success"), fmt.Sprintf(i18n.Tr("rename_success_count"), len(files)), window)
+			successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), len(files)))
 		}
 	}
 }

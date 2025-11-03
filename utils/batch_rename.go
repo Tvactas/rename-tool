@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"strconv"
 
 	"rename-tool/setting/global"
@@ -24,17 +23,17 @@ func ShowBatchRenameNormal() {
 	keepOriginal.SetChecked(true)
 
 	suffixText := widget.NewEntry()
-	suffixText.SetPlaceHolder(tr("suffix_placeholder"))
+	suffixText.SetPlaceHolder(buttonTr("suffixText"))
 
 	suffixDigits := widget.NewSelect([]string{"0", "1", "2", "3", "4", "5"}, nil)
 	suffixDigits.SetSelected("0")
 
 	// Format specific numbering option
-	formatSpecificNumbering := widget.NewCheck(tr("format_specific_numbering"), nil)
+	formatSpecificNumbering := widget.NewCheck(buttonTr("formatNumDivision"), nil)
 	formatSpecificNumbering.SetChecked(false)
 
 	// Start from zero option
-	startFromZero := widget.NewCheck(tr("start_from_zero"), nil)
+	startFromZero := widget.NewCheck(buttonTr("startFromZero"), nil)
 	startFromZero.SetChecked(true)
 
 	// Place options in the same row
@@ -66,21 +65,13 @@ func ShowBatchRenameNormal() {
 		}
 	}
 
-	// Create configuration validator
-	validateConfig := func(config model.RenameConfig) error {
-		if !config.KeepOriginal && config.PrefixDigits == 0 && config.SuffixDigits == 0 {
-			return errors.New(tr("error_no_prefix_suffix"))
-		}
-		return nil
-	}
-
 	// Use common UI display
 	ShowRenameUI(RenameUIConfig{
 		Title:           buttonTr("sequenceRename"),
 		Window:          global.MainWindow,
 		RenameType:      model.RenameTypeBatch,
 		ConfigBuilder:   configBuilder,
-		ValidateConfig:  validateConfig,
+		ValidateConfig:  func(config model.RenameConfig) error { return nil },
 		AdditionalItems: []fyne.CanvasObject{configForm},
 	})
 }

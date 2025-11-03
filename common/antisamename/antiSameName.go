@@ -10,7 +10,6 @@ import (
 
 	"rename-tool/common/dialogcustomize"
 	"rename-tool/common/pathgen"
-	"rename-tool/setting/i18n"
 	"rename-tool/setting/model"
 )
 
@@ -95,7 +94,7 @@ func CheckAndShowConflicts(window fyne.Window, files []string, config model.Rena
 		return false, err
 	}
 	if len(conflicts) > 0 {
-		dialogcustomize.ShowMultiLineCopyDialog("error", i18n.Tr("duplicate_names"), conflicts, window)
+		dialogcustomize.ShowMultiLineCopyDialog("error", dialogTr("duplicateNames"), conflicts, window)
 		return true, nil
 	}
 	return false, nil
