@@ -82,7 +82,7 @@ func buildWindowContent(previewList *widget.List, fileCount int, window fyne.Win
 // createTopBar 创建顶部栏
 func createTopBar(fileCount int) *fyne.Container {
 	title := widget.NewLabelWithStyle(buttonTr("preview"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	countLabel := widget.NewLabel(fmt.Sprintf(tr("total_files")+": %d", fileCount))
+	countLabel := widget.NewLabel(fmt.Sprintf(dialogTr("totalFiles")+": %d", fileCount))
 	return container.NewHBox(title, layout.NewSpacer(), countLabel)
 }
 

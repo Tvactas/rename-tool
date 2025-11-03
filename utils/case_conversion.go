@@ -17,7 +17,8 @@ func ShowRenameToCase(caseType string) {
 
 	// Use common UI display
 	ShowRenameUI(RenameUIConfig{
-		Title:          tr(caseType + "_case_title"),
+		////================================
+		Title:          (caseType + "_case_title"),
 		Window:         global.MainWindow,
 		RenameType:     model.RenameTypeCase,
 		ConfigBuilder:  configBuilder,

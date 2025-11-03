@@ -6,7 +6,6 @@ import (
 	"os"
 	"rename-tool/common/antisamename"
 	"rename-tool/setting/config"
-	"rename-tool/setting/i18n"
 	"syscall"
 	"time"
 )
@@ -47,7 +46,7 @@ func RenameFile(oldPath, newPath string) error {
 		time.Sleep(delay)
 		delay *= 2
 	}
-
-	return fmt.Errorf("%s: %s → %s", i18n.Tr("rename_failed_format"), oldPath, newPath)
+	////================================
+	return fmt.Errorf("%s: %s → %s", "rename_failed_format", oldPath, newPath)
 
 }

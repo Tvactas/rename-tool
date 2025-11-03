@@ -137,7 +137,8 @@ func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Butt
 		formats, err := doScanFormats(global.SelectedDir)
 		if err != nil {
 			safeUI(func() {
-				ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + tr("scanFailed"))
+				////================================
+				ui.FormatLabel.SetText(buttonTr("scanFormat") + ": " + "scanFailed")
 			})
 			return
 		}
@@ -213,7 +214,8 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 		time.AfterFunc(500*time.Millisecond, func() {
 			safeUI(func() {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
-					Title:   tr("rename_done"),
+					////================================
+					Title:   "rename_done",
 					Content: dialogTr("renameSuccess"),
 				})
 				btn.Enable()

@@ -55,11 +55,6 @@ func (i *I18nManager) SetOnLangChange(callback func()) {
 	i.onLangChange = callback
 }
 
-// Tr 获取当前语言的翻译文本
-func Tr(key string) string {
-	return Translations[manager.currentLang][key]
-}
-
 func makeTrGetter(translations map[string]map[string]string) func(string) string {
 	return func(key string) string {
 		if langMap, ok := translations[manager.currentLang]; ok {

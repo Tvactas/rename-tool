@@ -37,7 +37,8 @@ func ShowChangeExtension() {
 	// Create validation function
 	validateConfig := func(config model.RenameConfig) error {
 		if config.NewExtension == "" {
-			return errors.New(tr("new_extension_empty"))
+			////================================
+			return errors.New("new_extension_empty")
 		}
 		return nil
 	}

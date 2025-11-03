@@ -107,13 +107,13 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 			textArea.SetText(content)
 			textArea.Wrapping = fyne.TextWrapWord
 			textArea.Disable()
-
-			copyBtn := widget.NewButton(tr("copy"), func() {
+			////================================
+			copyBtn := widget.NewButton("copy", func() {
 				window.Clipboard().SetContent(content)
-				dialog.ShowInformation(dialogTr("success"), tr("copySuccess"), window)
+				dialog.ShowInformation(dialogTr("success"), "copySuccess", window)
 			})
-
-			closeBtn := widget.NewButton(tr("close"), nil)
+			////================================
+			closeBtn := widget.NewButton("close", nil)
 
 			dialogContent := container.NewBorder(
 				widget.NewLabel(dialogTr("error")+": "+dialogTr("duplicateNames")),
@@ -235,12 +235,16 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 	// 处理结果
 	busyFiles := []string{}
 	lengthErrorFiles := []string{}
+	otherErrors := make(map[string]error)
 	for result := range resultChan {
 		if result.err != nil {
 			if filestatus.IsFileBusyError(result.err) {
 				busyFiles = append(busyFiles, result.file)
 			} else if _, ok := result.err.(*ui.FilenameLengthError); ok {
 				lengthErrorFiles = append(lengthErrorFiles, result.file)
+			} else {
+				// 收集其他类型的错误（权限、磁盘空间等），保存错误信息
+				otherErrors[result.file] = result.err
 			}
 		}
 
@@ -256,19 +260,22 @@ func performRename(window fyne.Window, config model.RenameConfig) {
 		return
 	}
 
-	// 显示文件名长度错误
-	if len(lengthErrorFiles) > 0 {
-		ui.ShowLengthErrorDialog(window, lengthErrorFiles)
+	// 显示文件占用错误
+	if len(busyFiles) > 0 {
+		////================================
+		dialogcustomize.ShowMultiLineCopyDialog("error", "rename_failed_files", busyFiles, window)
 		return
 	}
 
-	// 直接用弹窗列出未完成重命名的文件
-	if len(busyFiles) > 0 {
-		dialogcustomize.ShowMultiLineCopyDialog("error", tr("rename_failed_files"), busyFiles, window)
+	// 显示其他类型的错误（权限、磁盘空间等），显示详细的错误信息
+	if len(otherErrors) > 0 {
+		////================================
+		dialogcustomize.ShowMultiLineErrorDialog("error", "rename_failed_files", otherErrors, window)
 		return
-	} else {
-		if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 {
-			successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), len(files)))
-		}
+	}
+
+	// 所有文件都成功
+	if len(busyFiles) == 0 && len(lengthErrorFiles) == 0 && len(otherErrors) == 0 {
+		successDiaLog(window, fmt.Sprintf(dialogTr("successRenameCount"), len(files)))
 	}
 }

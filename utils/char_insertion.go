@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"path/filepath"
 	"strconv"
 
 	"rename-tool/common/dirpath"
@@ -43,17 +44,34 @@ func ShowInsertCharRename() {
 			return errors.New(textTr("isNotNumber"))
 		}
 
-		// 获取最短文件名长度
-		minLen, err := dirpath.GetShortestFilenameLength(global.SelectedDir)
-		if err != nil {
-			return err
-		}
-		if config.InsertPosition > minLen {
-			return errors.New(textTr("positionExceedsLength"))
-		}
 		if config.InsertText == "" {
 			return errors.New(textTr("insertEmptyText"))
 		}
+
+		// 检查文件名长度
+		if config.SelectedDir == "" {
+			return errors.New(dialogTr("selectDirFirst"))
+		}
+
+		// 获取所有文件
+		files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
+		if err != nil {
+			return err
+		}
+
+		// 检查哪些文件的文件名长度小于插入位置
+		lengthErrorFiles := []string{}
+		for _, file := range files {
+			// 获取文件名（不包括扩展名）的 rune 长度
+			baseName := filepath.Base(file)
+			nameWithoutExt := baseName[:len(baseName)-len(filepath.Ext(baseName))]
+			runes := []rune(nameWithoutExt)
+
+			if config.InsertPosition > len(runes) {
+				lengthErrorFiles = append(lengthErrorFiles, baseName)
+			}
+		}
+
 		return nil
 	}
 

@@ -28,7 +28,8 @@ func SaveLogs() {
 	dir := filepath.Dir(applog.GetLogPath())
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
-		errorDiaLog(global.MainWindow, fmt.Sprintf(tr("error_creating_directory")+": %v", err))
+		////================================
+		errorDiaLog(global.MainWindow, fmt.Sprintf("error_creating_directory"+": %v", err))
 
 		return
 	}
@@ -36,7 +37,8 @@ func SaveLogs() {
 	tempPath := applog.GetLogPath() + ".tmp"
 	if err := os.WriteFile(tempPath, []byte(content), 0644); err != nil {
 		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
-		errorDiaLog(global.MainWindow, fmt.Sprintf(tr("error_saving_log")+": %v", err))
+		////================================
+		errorDiaLog(global.MainWindow, fmt.Sprintf("error_saving_log"+": %v", err))
 		return
 	}
 
@@ -45,7 +47,8 @@ func SaveLogs() {
 	if err := os.Rename(tempPath, applog.GetLogPath()); err != nil {
 		applog.Logger.Printf("[SAVE LOG ERROR] %v", err)
 		os.Remove(tempPath)
-		errorDiaLog(global.MainWindow, fmt.Sprintf(tr("error_saving_log")+": %v", err))
+		////================================
+		errorDiaLog(global.MainWindow, fmt.Sprintf("error_saving_log"+": %v", err))
 		return
 	}
 
