@@ -28,7 +28,7 @@ func DefaultConfig() AppConfig {
 func InitializeApp(config AppConfig) error {
 	defer recovery.RecoverPanic()
 
-	if err := initApp(config); err != nil {
+	if err := initAppID(config); err != nil {
 		return err
 	}
 

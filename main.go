@@ -2,6 +2,7 @@ package main
 
 //power by Tvacats
 import (
+	"fmt"
 	"rename-tool/common/appinit"
 	"rename-tool/common/applog"
 	"rename-tool/common/menu"
@@ -17,6 +18,7 @@ func main() {
 		applog.Logger.Printf("[INIT ERROR]  %s %v", i18n.LogTr("initAppError"), err)
 		return
 	}
+	fmt.Printf("App full dump:\n%+v\n", global.MyApp)
 
 	// Show main menu
 	menu.ShowMainMenu()

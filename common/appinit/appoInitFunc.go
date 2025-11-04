@@ -9,7 +9,7 @@ import (
 	"fyne.io/fyne/v2/app"
 )
 
-func initApp(config AppConfig) error {
+func initAppID(config AppConfig) error {
 	global.MyApp = app.NewWithID(config.AppID)
 	if global.MyApp == nil {
 		return errors.New(textTr("failInitAppID"))
@@ -22,6 +22,10 @@ func initMainWindow(config AppConfig) error {
 	if global.MainWindow == nil {
 		return errors.New(textTr("failCreateMainWindow"))
 	}
+	// 设置应用图标
+	// 设置应用图标
+	icon := theme.NewIcon("icon.png")
+	icon.Apply(global.MyApp, global.MainWindow)
 
 	global.MainWindow.Resize(config.WindowSize)
 	global.MainWindow.CenterOnScreen()

@@ -29,7 +29,7 @@ func buildHeader() fyne.CanvasObject {
 
 // buildMainImage loads and returns the themed image (with fallback).
 func buildMainImage() *canvas.Image {
-	imgResource := theme.LoadImage("cat.png")
+	imgResource := theme.LoadImage("cats.png")
 	var image *canvas.Image
 	if imgResource != nil {
 		image = canvas.NewImageFromResource(imgResource)
@@ -52,10 +52,10 @@ func buildBody() fyne.CanvasObject {
 	}{
 		{buttonTr("sequenceRename"), utils.ShowBatchRenameNormal},
 		{buttonTr("extensionModify"), utils.ShowChangeExtension},
-		{buttonTr("toUpper"), func() { utils.ShowRenameToCase("upper") }},
-		{buttonTr("toLower"), func() { utils.ShowRenameToCase("lower") }},
-		{buttonTr("titlecase"), func() { utils.ShowRenameToCase("title") }},
-		{buttonTr("camel"), func() { utils.ShowRenameToCase("camel") }},
+		{buttonTr("upperCase"), func() { utils.ShowRenameToCase("upper") }},
+		{buttonTr("lowerCase"), func() { utils.ShowRenameToCase("lower") }},
+		{buttonTr("titleCase"), func() { utils.ShowRenameToCase("title") }},
+		{buttonTr("camelCase"), func() { utils.ShowRenameToCase("camel") }},
 		{buttonTr("insertLetter"), utils.ShowInsertCharRename},
 		{buttonTr("deleteLetter"), utils.ShowDeleteCharRename},
 		{buttonTr("regexReplace"), utils.ShowRegexReplace},
