@@ -57,8 +57,8 @@ func ShowInsertCharRename() {
 			return errors.New(dialogTr("selectDirFirst"))
 		}
 
-		// 获取所有文件
-		files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
+		// 获取所有文件（验证时默认不递归，实际预览和执行时会使用UI中的递归设置）
+		files, err := dirpath.GetFiles(config.SelectedDir, config.Formats, false)
 		if err != nil {
 			return err
 		}

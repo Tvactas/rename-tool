@@ -2,7 +2,6 @@ package main
 
 //power by Tvacats
 import (
-	"fmt"
 	"rename-tool/common/appinit"
 	"rename-tool/common/applog"
 	"rename-tool/common/menu"
@@ -18,7 +17,6 @@ func main() {
 		applog.Logger.Printf("[INIT ERROR]  %s %v", i18n.LogTr("initAppError"), err)
 		return
 	}
-	fmt.Printf("App full dump:\n%+v\n", global.MyApp)
 
 	// Show main menu
 	menu.ShowMainMenu()
@@ -29,7 +27,6 @@ func main() {
 
 func init() {
 	applog.InitLogger("tvacats_rename.log")
-	applog.Logger.Printf("[IMPORTANT] Email me with tvacats@gmail.com")
 	// Initialize resource loader
 	theme.Init() // Initialize resource loader
 

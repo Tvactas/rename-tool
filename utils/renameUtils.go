@@ -46,11 +46,14 @@ func ShowRenameUI(config RenameUIConfig) {
 
 	dirBox := container.NewHBox(ui.DirSelector, scanBtn)
 	formatBox := container.NewHBox(ui.FormatLabel, ui.SelectAllBtn)
+	recursiveBox := container.NewHBox(ui.RecursiveCheck)
 
 	mainContent := container.NewVBox(
 		ui.Title,
 		widget.NewSeparator(),
 		dirBox,
+		widget.NewSeparator(),
+		recursiveBox,
 		widget.NewSeparator(),
 		formatBox,
 		ui.FormatScroll,
@@ -70,13 +73,13 @@ func ShowRenameUI(config RenameUIConfig) {
 }
 
 // performRename 执行重命名操作
-func performRename(window fyne.Window, config model.RenameConfig) {
+func performRename(window fyne.Window, config model.RenameConfig, recursive bool) {
 	if config.SelectedDir == "" {
 		errorDiaLog(window, dialogTr("selectDirFirst"))
 		return
 	}
 	// 获取文件列表
-	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats)
+	files, err := dirpath.GetFiles(config.SelectedDir, config.Formats, recursive)
 	if err != nil {
 		errorDiaLog(window, dialogTr("failGetFiles"))
 		return

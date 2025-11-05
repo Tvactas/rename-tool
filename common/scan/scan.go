@@ -12,6 +12,31 @@ import (
 
 func ScanFormats(dir string) ([]string, error) {
 	formatMap := make(map[string]struct{})
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			ext := strings.ToLower(filepath.Ext(entry.Name()))
+			if ext != "" {
+				formatMap[ext] = struct{}{}
+			}
+		}
+	}
+
+	formats := make([]string, 0, len(formatMap))
+	for ext := range formatMap {
+		formats = append(formats, ext)
+	}
+	sort.Strings(formats)
+	return formats, nil
+}
+
+func ScanFormatsWalk(dir string) ([]string, error) {
+	formatMap := make(map[string]struct{})
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			if filestatus.IsFileBusyError(err) {

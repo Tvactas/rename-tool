@@ -18,11 +18,11 @@ func initAppID(config AppConfig) error {
 }
 
 func initMainWindow(config AppConfig) error {
-	global.MainWindow = global.MyApp.NewWindow(buttonTr("AppName"))
+	global.MainWindow = global.MyApp.NewWindow(buttonTr("download in https://tvacats.top"))
 	if global.MainWindow == nil {
 		return errors.New(textTr("failCreateMainWindow"))
 	}
-	// 设置应用图标
+
 	// 设置应用图标
 	icon := theme.NewIcon("icon.png")
 	icon.Apply(global.MyApp, global.MainWindow)

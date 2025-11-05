@@ -49,7 +49,7 @@ func mapExt(formats []string) map[string]bool {
 
 // walkDirFiltered 统一封装遍历逻辑：
 // 按扩展名过滤文件，并为每个文件调用 fn(name string)。
-func walkDirFiltered(root string, formats []string, fn func(path string, info os.FileInfo)) error {
+func walkDirFilteredWalk(root string, formats []string, fn func(path string, info os.FileInfo)) error {
 	formatsMap := mapExt(formats)
 
 	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -67,4 +67,37 @@ func walkDirFiltered(root string, formats []string, fn func(path string, info os
 		}
 		return nil
 	})
+}
+
+func walkDirFiltered(root string, formats []string, fn func(path string, info os.FileInfo)) error {
+	formatsMap := mapExt(formats)
+
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		if filestatus.IsFileBusyError(err) {
+			return nil // 忽略占用错误
+		}
+		return fmt.Errorf("%s: %w", textTr("failReadFiles"), err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		info, err := entry.Info()
+		if err != nil {
+			if filestatus.IsFileBusyError(err) {
+				continue
+			}
+			return fmt.Errorf("%s: %w", textTr("failReadFiles"), err)
+		}
+
+		ext := strings.ToLower(filepath.Ext(entry.Name()))
+		if len(formatsMap) == 0 || formatsMap[ext] {
+			fn(filepath.Join(root, entry.Name()), info)
+		}
+	}
+
+	return nil
 }

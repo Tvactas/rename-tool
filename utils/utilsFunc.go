@@ -23,6 +23,7 @@ type RenameUIComponents struct {
 	SelectAllBtn        *widget.Button
 	FormatScroll        *container.Scroll
 	DirSelector         fyne.CanvasObject
+	RecursiveCheck      *widget.Check
 }
 
 func safeUI(f func()) {
@@ -68,6 +69,9 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 
 	dirSelector := dirpath.CreateDirSelector(window, onDirChanged)
 
+	recursiveCheck := widget.NewCheck(buttonTr("recursiveSubdir"), nil)
+	recursiveCheck.SetChecked(false) // 默认不递归
+
 	return &RenameUIComponents{
 		Window:              window,
 		Title:               title,
@@ -77,12 +81,16 @@ func initRenameUI(config RenameUIConfig) (*RenameUIComponents, error) {
 		SelectAllBtn:        selectAllBtn,
 		FormatScroll:        formatScroll,
 		DirSelector:         dirSelector,
+		RecursiveCheck:      recursiveCheck,
 	}, nil
 }
 
-func doScanFormats(dir string) ([]string, error) {
+func doScanFormats(dir string, recursive bool) ([]string, error) {
 	if dir == "" {
 		return nil, fmt.Errorf("no directory selected")
+	}
+	if recursive {
+		return scan.ScanFormatsWalk(dir)
 	}
 	return scan.ScanFormats(dir)
 }
@@ -134,7 +142,8 @@ func setupScanButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Butt
 			return
 		}
 
-		formats, err := doScanFormats(global.SelectedDir)
+		recursive := ui.RecursiveCheck.Checked
+		formats, err := doScanFormats(global.SelectedDir, recursive)
 		if err != nil {
 			safeUI(func() {
 				////================================
@@ -174,7 +183,8 @@ func setupPreviewButton(ui *RenameUIComponents, config RenameUIConfig) *widget.B
 			return
 		}
 
-		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats)
+		recursive := ui.RecursiveCheck.Checked
+		files, err := dirpath.GetFiles(global.SelectedDir, selectedFormats, recursive)
 		if err != nil {
 			errorDiaLog(ui.Window, err.Error())
 			return
@@ -209,7 +219,8 @@ func setupRenameButton(ui *RenameUIComponents, config RenameUIConfig) *widget.Bu
 		}
 
 		btn.Disable()
-		performRename(ui.Window, renameConfig)
+		recursive := ui.RecursiveCheck.Checked
+		performRename(ui.Window, renameConfig, recursive)
 
 		time.AfterFunc(500*time.Millisecond, func() {
 			safeUI(func() {

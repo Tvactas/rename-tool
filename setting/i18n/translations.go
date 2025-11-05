@@ -141,6 +141,7 @@ var button_translations = map[string]map[string]string{
 		"newExtension":        "新扩展名",
 		"formatNumDivision":   "格式单独计数",
 		"startFromZero":       "序号从0开始",
+		"recursiveSubdir":     "递归子目录",
 	},
 	"en": {
 		"AppName":             "File Rename Tool",
@@ -184,6 +185,7 @@ var button_translations = map[string]map[string]string{
 		"newExtension":        "New Extension",
 		"formatNumDivision":   "Format Specific Numbering",
 		"startFromZero":       "Start from Zero",
+		"recursiveSubdir":     "Recursive Subdirectories",
 	},
 	"ja": {
 		"AppName":             "ファイル名変更ツール",
@@ -227,6 +229,7 @@ var button_translations = map[string]map[string]string{
 		"newExtension":        "新しい拡張子",
 		"formatNumDivision":   "フォーマット別の番号付け",
 		"startFromZero":       "0から開始",
+		"recursiveSubdir":     "サブディレクトリを再帰的に処理",
 	},
 }
 

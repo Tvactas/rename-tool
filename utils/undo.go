@@ -47,7 +47,7 @@ func UndoRename() {
 	// 反馈结果
 	switch {
 	case successCount == 0 && len(busyFiles) == 0:
-		warningDiaLog(global.MainWindow, dialogTr("noUndoPerformed"))
+		warningDiaLog(global.MainWindow, dialogTr("noUndoOperations"))
 
 	case len(busyFiles) > 0:
 		warningMultiDiaLog(global.MainWindow, busyFiles)

@@ -13,12 +13,19 @@ import (
 )
 
 // GetFiles 获取指定目录下符合格式的所有文件
-func GetFiles(root string, formats []string) ([]string, error) {
+func GetFiles(root string, formats []string, recursive bool) ([]string, error) {
 	var files []string
 
-	err := walkDirFiltered(root, formats, func(path string, _ os.FileInfo) {
-		files = append(files, path)
-	})
+	var err error
+	if recursive {
+		err = walkDirFilteredWalk(root, formats, func(path string, _ os.FileInfo) {
+			files = append(files, path)
+		})
+	} else {
+		err = walkDirFiltered(root, formats, func(path string, _ os.FileInfo) {
+			files = append(files, path)
+		})
+	}
 
 	if err != nil {
 		return nil, err
